@@ -34,7 +34,7 @@ public class QrCodeFragment extends Fragment {
     /**
      * {@link Bundle} key for {@link WifiSettings} argument
      */
-    private static final String WIFI_SETTINGS = "WIFI_SETTINGS";
+    private static final String WIFI_SETTINGS = "WIFI_SETTINGS"; //$NON-NLS-1$
 
     /**
      * Factory method for instances of this class

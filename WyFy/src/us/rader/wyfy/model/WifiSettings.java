@@ -146,15 +146,15 @@ public final class WifiSettings implements Serializable {
 
         if (actual != chars.length) {
 
-            throw new IllegalArgumentException("URI must begin with 'WIFI:'");
+            throw new IllegalArgumentException("URI must begin with 'WIFI:'"); //$NON-NLS-1$
 
         }
 
         String prefix = new String(chars);
 
-        if (!"WIFI:".equalsIgnoreCase(prefix)) {
+        if (!"WIFI:".equalsIgnoreCase(prefix)) { //$NON-NLS-1$
 
-            throw new IllegalArgumentException("URI must begin with 'WIFI:'");
+            throw new IllegalArgumentException("URI must begin with 'WIFI:'"); //$NON-NLS-1$
 
         }
 
@@ -165,7 +165,7 @@ public final class WifiSettings implements Serializable {
 
             if (c == -1) {
 
-                throw new IllegalArgumentException("unexpected end of input");
+                throw new IllegalArgumentException("unexpected end of input"); //$NON-NLS-1$
 
             }
 
@@ -197,7 +197,7 @@ public final class WifiSettings implements Serializable {
                 default:
 
                     throw new IllegalArgumentException(
-                            "unrecognized parameter " + parameter);
+                            "unrecognized parameter " + parameter); //$NON-NLS-1$
 
             }
         }
@@ -222,7 +222,7 @@ public final class WifiSettings implements Serializable {
      */
     public static WifiSettings parse(String uri) throws IOException {
 
-        return parse(new ByteArrayInputStream(uri.getBytes("US-ASCII")));
+        return parse(new ByteArrayInputStream(uri.getBytes("US-ASCII"))); //$NON-NLS-1$
 
     }
 
@@ -307,6 +307,11 @@ public final class WifiSettings implements Serializable {
 
                 break;
 
+            default:
+
+                throw new IllegalStateException(
+                        "Illegal security constant " + securityProtcol); //$NON-NLS-1$
+
         }
 
         return manager.addNetwork(config);
@@ -328,11 +333,11 @@ public final class WifiSettings implements Serializable {
 
         if (string == null) {
 
-            return "";
+            return ""; //$NON-NLS-1$
 
         }
 
-        return "\"" + string + "\"";
+        return "\"" + string + "\""; //$NON-NLS-1$//$NON-NLS-2$
 
     }
 
@@ -349,11 +354,11 @@ public final class WifiSettings implements Serializable {
 
         if (string == null) {
 
-            return "";
+            return ""; //$NON-NLS-1$
 
         }
 
-        if (string.startsWith("\"") && string.endsWith("\"")) {
+        if (string.startsWith("\"") && string.endsWith("\"")) { //$NON-NLS-1$//$NON-NLS-2$
 
             return string.substring(1, string.length() - 1);
 
@@ -383,13 +388,13 @@ public final class WifiSettings implements Serializable {
 
         if (c == -1) {
 
-            throw new IllegalArgumentException("':' expected");
+            throw new IllegalArgumentException("':' expected"); //$NON-NLS-1$
 
         }
 
         if (c != ':') {
 
-            throw new IllegalArgumentException("':' expected");
+            throw new IllegalArgumentException("':' expected"); //$NON-NLS-1$
 
         }
 
@@ -399,7 +404,7 @@ public final class WifiSettings implements Serializable {
 
             if (c == -1) {
 
-                throw new IllegalArgumentException("';' expected");
+                throw new IllegalArgumentException("';' expected"); //$NON-NLS-1$
 
             }
 
@@ -421,11 +426,11 @@ public final class WifiSettings implements Serializable {
      */
     private static Security toSecurity(String token) {
 
-        if ("WEP".equalsIgnoreCase(token)) {
+        if ("WEP".equalsIgnoreCase(token)) { //$NON-NLS-1$
 
             return Security.WEP;
 
-        } else if ("WPA".equalsIgnoreCase(token)) {
+        } else if ("WPA".equalsIgnoreCase(token)) { //$NON-NLS-1$
 
             return Security.WPA;
 
@@ -461,8 +466,8 @@ public final class WifiSettings implements Serializable {
      */
     public WifiSettings() {
 
-        ssid = "";
-        password = "";
+        ssid = ""; //$NON-NLS-1$
+        password = ""; //$NON-NLS-1$
         security = Security.NONE;
         hidden = false;
 
@@ -482,7 +487,7 @@ public final class WifiSettings implements Serializable {
         setHidden(configuration.hiddenSSID);
 
         if ((configuration.preSharedKey != null)
-                && !"".equals(configuration.preSharedKey)) {
+                && !"".equals(configuration.preSharedKey)) { //$NON-NLS-1$
 
             setSecurity(Security.WPA);
             setPassword(normalize(configuration.preSharedKey));
@@ -496,7 +501,7 @@ public final class WifiSettings implements Serializable {
         } else {
 
             setSecurity(Security.NONE);
-            setPassword("");
+            setPassword(""); //$NON-NLS-1$
 
         }
     }
@@ -621,7 +626,7 @@ public final class WifiSettings implements Serializable {
     @Override
     public String toString() {
 
-        StringBuffer buffer = new StringBuffer("WIFI:S:");
+        StringBuffer buffer = new StringBuffer("WIFI:S:"); //$NON-NLS-1$
         buffer.append(ssid);
         buffer.append(';');
 
@@ -629,28 +634,28 @@ public final class WifiSettings implements Serializable {
 
             case WEP:
 
-                buffer.append("P:");
+                buffer.append("P:"); //$NON-NLS-1$
                 buffer.append(password);
-                buffer.append(";T:WEP;");
+                buffer.append(";T:WEP;"); //$NON-NLS-1$
                 break;
 
             case WPA:
 
-                buffer.append("P:");
+                buffer.append("P:"); //$NON-NLS-1$
                 buffer.append(password);
-                buffer.append(";T:WPA;");
+                buffer.append(";T:WPA;"); //$NON-NLS-1$
                 break;
 
             default:
 
-                buffer.append("T:nopass;");
+                buffer.append("T:nopass;"); //$NON-NLS-1$
                 break;
 
         }
 
         if (hidden) {
 
-            buffer.append("H:true;");
+            buffer.append("H:true;"); //$NON-NLS-1$
 
         }
 

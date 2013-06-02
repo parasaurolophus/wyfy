@@ -93,7 +93,7 @@ public class WifiSettingsFragment extends Fragment implements
 
             } catch (Exception e) {
 
-                Log.e(getClass().getName(), "doInBackground", e);
+                Log.e(getClass().getName(), "doInBackground", e); //$NON-NLS-1$
                 return null;
 
             }
@@ -124,7 +124,7 @@ public class WifiSettingsFragment extends Fragment implements
     /**
      * Arguments bundle key for the {@link WifiSettings} parameter
      */
-    private static final String WIFI_SETTINGS = "WIFI_SETTINGS";
+    private static final String WIFI_SETTINGS = "WIFI_SETTINGS"; //$NON-NLS-1$
 
     /**
      * Create a new instance of {@link WifiSettingsFragment}

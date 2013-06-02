@@ -117,7 +117,7 @@ public class MainActivity extends FragmentActivity implements
 
                     } catch (Exception e) {
 
-                        Log.e(getClass().getName(), "error parsing URI", e);
+                        Log.e(getClass().getName(), "error parsing URI", e); //$NON-NLS-1$
 
                     }
                 }
