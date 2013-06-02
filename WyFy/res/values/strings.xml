@@ -21,5 +21,7 @@
     <string name="tag_size_exceeded">Message size %1$d exceeds tag size %2$d; please try another</string>
     <string name="success_writing_tag">Successfully wrote to tag</string>
     <string name="write_tag_label">Write tag...</string>
+    <string name="successfully_connected_to_wifi">Successfully connected to %1$s</string>
+    <string name="failed_to_connect_to_wifi">Failed to connect to %1$s</string>
 
 </resources>

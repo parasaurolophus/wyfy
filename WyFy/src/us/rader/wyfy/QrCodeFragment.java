@@ -98,12 +98,6 @@ public final class QrCodeFragment extends Fragment {
             settings = (WifiSettings) arguments.getSerializable(WIFI_SETTINGS);
 
         }
-
-        if (settings != null) {
-
-            updateQrCode(settings);
-
-        }
     }
 
     /**
@@ -128,6 +122,13 @@ public final class QrCodeFragment extends Fragment {
         View view = inflater.inflate(R.layout.qr_code_fragment, container,
                 false);
         uriText = (EditText) view.findViewById(R.id.qr_code_text);
+
+        if (settings != null) {
+
+            uriText.setText(settings.toString());
+
+        }
+
         return view;
 
     }

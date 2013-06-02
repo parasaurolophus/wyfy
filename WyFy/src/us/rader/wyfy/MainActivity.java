@@ -17,8 +17,12 @@ package us.rader.wyfy;
 
 import us.rader.wyfy.model.WifiSettings;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -35,6 +39,63 @@ import android.view.MenuItem;
  */
 public final class MainActivity extends FragmentActivity implements
         WifiSettingsFragment.OnWifiSettingsChangedListener {
+
+    /**
+     * Attempt to connect to wifi in a worker thread
+     * 
+     * @author Kirk
+     */
+    private class ConnectTask extends AsyncTask<Void, Void, Boolean> {
+
+        /**
+         * Connect to wifi in a worker thread
+         * 
+         * @param params
+         *            ignored
+         * 
+         * @see android.os.AsyncTask#doInBackground(Void...)
+         */
+        @Override
+        protected Boolean doInBackground(Void... params) {
+
+            try {
+
+                return settings
+                        .connect((WifiManager) getSystemService(WIFI_SERVICE));
+
+            } catch (Exception e) {
+
+                Log.e(getClass().getName(), "error connecting to wifi", e); //$NON-NLS-1$
+                return false;
+
+            }
+        }
+
+        /**
+         * Report outcome to user
+         * 
+         * @param result
+         *            <code>true</code> if and only if connectin attempt was
+         *            successful
+         * 
+         * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
+         */
+        @Override
+        protected void onPostExecute(Boolean result) {
+
+            String ssid = settings.getSsid();
+            alert(result ? getString(R.string.successfully_connected_to_wifi,
+                    ssid) : getString(R.string.failed_to_connect_to_wifi, ssid));
+
+        }
+
+    }
+
+    /**
+     * if <code>true</code>, call {@link WifiSettings#connect(WifiManager)} in
+     * {@link #onResume()}
+     */
+    private boolean        connect;
 
     /**
      * {@link QrCodeFragment} to notify when the {@link #settings} change
@@ -134,6 +195,7 @@ public final class MainActivity extends FragmentActivity implements
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+        connect = false;
 
         if (settings == null) {
 
@@ -148,6 +210,7 @@ public final class MainActivity extends FragmentActivity implements
                     try {
 
                         settings = WifiSettings.parse(uri);
+                        connect = true;
 
                     } catch (Exception e) {
 
@@ -183,6 +246,51 @@ public final class MainActivity extends FragmentActivity implements
         }
 
         transaction.commit();
+
+    }
+
+    /**
+     * Call {@link WifiSettings#connect(WifiManager)} if {@link #connect} is
+     * <code>true</code>
+     * 
+     * @see android.support.v4.app.FragmentActivity#onResume()
+     */
+    @Override
+    protected void onResume() {
+
+        super.onResume();
+
+        if (connect && (settings != null)) {
+
+            new ConnectTask().execute();
+
+        }
+    }
+
+    /**
+     * Display <code>message</code> to the user
+     * 
+     * @param message
+     *            the message text
+     */
+    private void alert(String message) {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(message);
+
+        builder.setNeutralButton(android.R.string.ok,
+                new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        dialog.dismiss();
+
+                    }
+
+                });
+
+        builder.show();
 
     }
 

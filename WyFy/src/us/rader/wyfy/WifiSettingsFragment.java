@@ -373,13 +373,9 @@ public final class WifiSettingsFragment extends Fragment implements
         View view = inflater.inflate(R.layout.wifi_settings_fragment,
                 container, false);
         ssidText = (EditText) view.findViewById(R.id.ssid_text);
-        ssidText.addTextChangedListener(this);
         passwordText = (EditText) view.findViewById(R.id.password_text);
-        passwordText.addTextChangedListener(this);
         securityGroup = (RadioGroup) view.findViewById(R.id.security_group);
-        securityGroup.setOnCheckedChangeListener(this);
         hiddenCheckBox = (CheckBox) view.findViewById(R.id.hidden_checkbox);
-        hiddenCheckBox.setOnCheckedChangeListener(this);
 
         if (settings != null) {
 
@@ -387,14 +383,10 @@ public final class WifiSettingsFragment extends Fragment implements
 
         }
 
-        View focus = view.findFocus();
-
-        if (focus != null) {
-
-            securityGroup.requestFocus();
-
-        }
-
+        ssidText.addTextChangedListener(this);
+        passwordText.addTextChangedListener(this);
+        securityGroup.setOnCheckedChangeListener(this);
+        hiddenCheckBox.setOnCheckedChangeListener(this);
         return view;
 
     }
@@ -496,7 +488,7 @@ public final class WifiSettingsFragment extends Fragment implements
      */
     private void notifyListener(WifiSettings settings) {
 
-        if (listener != null) {
+        if ((listener != null) && (settings != null)) {
 
             listener.onWifiSettingsChanged(settings);
 

@@ -32,7 +32,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data android:scheme="WIFI" />
+                <data android:scheme="wifi" />
             </intent-filter>
         </activity>
         <activity
