@@ -40,7 +40,7 @@ import android.widget.RadioGroup.OnCheckedChangeListener;
  * 
  * @author Kirk
  */
-public class WifiSettingsFragment extends Fragment implements
+public final class WifiSettingsFragment extends Fragment implements
         OnCheckedChangeListener,
         android.widget.CompoundButton.OnCheckedChangeListener, TextWatcher {
 

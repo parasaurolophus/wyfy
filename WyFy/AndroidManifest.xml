@@ -35,6 +35,14 @@
                 <data android:scheme="WIFI" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="us.rader.wyfy.WriteTagActivity"
+            android:label="@string/title_activity_write_tag"
+            android:parentActivityName="us.rader.wyfy.MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="us.rader.wyfy.MainActivity" />
+        </activity>
     </application>
 
 </manifest>

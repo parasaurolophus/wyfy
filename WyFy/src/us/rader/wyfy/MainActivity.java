@@ -26,17 +26,21 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 
 /**
  * Launcher {@link Activity} for <code>WyFy</code> app
  * 
  * @author Kirk
  */
-public class MainActivity extends FragmentActivity implements
+public final class MainActivity extends FragmentActivity implements
         WifiSettingsFragment.OnWifiSettingsChangedListener {
 
     /**
      * {@link QrCodeFragment} to notify when the {@link #settings} change
+     * 
+     * Note that this will be <code>null</code> on devices that display only a
+     * single pane
      */
     private QrCodeFragment qrCodeFragment;
 
@@ -70,6 +74,32 @@ public class MainActivity extends FragmentActivity implements
     }
 
     /**
+     * Handle an options {@link MenuItem}
+     * 
+     * @param item
+     *            {@link MenuItem} to handle
+     * 
+     * @return <code>true</code> if and only if event was consumed
+     * 
+     * @see android.app.Activity#onOptionsItemSelected(android.view.MenuItem)
+     */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        switch (item.getItemId()) {
+
+            case R.id.write_tag_item:
+
+                return writeTag();
+
+            default:
+
+                return super.onOptionsItemSelected(item);
+
+        }
+    }
+
+    /**
      * Handle notification that the {@link WifiSettings} model state has been
      * changed by the user
      * 
@@ -82,8 +112,12 @@ public class MainActivity extends FragmentActivity implements
     public void onWifiSettingsChanged(WifiSettings newSettings) {
 
         settings = newSettings;
-        qrCodeFragment.updateQrCode(settings);
 
+        if (qrCodeFragment != null) {
+
+            qrCodeFragment.updateQrCode(settings);
+
+        }
     }
 
     /**
@@ -137,6 +171,7 @@ public class MainActivity extends FragmentActivity implements
 
             transaction.add(R.id.single_fragment,
                     WifiSettingsFragment.newInstance(settings));
+            qrCodeFragment = null;
 
         } else {
 
@@ -148,6 +183,21 @@ public class MainActivity extends FragmentActivity implements
         }
 
         transaction.commit();
+
+    }
+
+    /**
+     * Start {@Link WriteTagActivity}
+     * 
+     * @return <code>true</code>
+     */
+    private boolean writeTag() {
+
+        Intent intent = new Intent(this, WriteTagActivity.class);
+        Uri uri = Uri.parse(settings.toString());
+        intent.setData(uri);
+        startActivity(intent);
+        return true;
 
     }
 

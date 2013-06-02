@@ -29,7 +29,7 @@ import android.widget.EditText;
  * 
  * @author Kirk
  */
-public class QrCodeFragment extends Fragment {
+public final class QrCodeFragment extends Fragment {
 
     /**
      * {@link Bundle} key for {@link WifiSettings} argument

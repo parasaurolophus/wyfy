@@ -10,5 +10,16 @@
     <string name="wep_label">WEP</string>
     <string name="wpa_label">WPA</string>
     <string name="hidden_label">Hidden</string>
+    <string name="title_activity_write_tag">WriteTagActivity</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="tap_tag">Tap tag to write...</string>
+    <string name="error_procesing_tag">Error procesing tag</string>
+    <string name="incompatible_tag">Incompatible tag; please try another</string>
+    <string name="error_formatting_tag">Error formatting tag</string>
+    <string name="error_writing_tag">Error writing tag</string>
+    <string name="read_only_tag">Read-only tag; please try another</string>
+    <string name="tag_size_exceeded">Message size %1$d exceeds tag size %2$d; please try another</string>
+    <string name="success_writing_tag">Successfully wrote to tag</string>
+    <string name="write_tag_label">Write tag...</string>
 
 </resources>
