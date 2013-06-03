@@ -21,11 +21,22 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
+import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.net.Uri;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.EncodeHintType;
+import com.google.zxing.WriterException;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
+import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 
 /**
  * Model class for Android WIFI settings
@@ -33,6 +44,30 @@ import android.net.wifi.WifiManager;
  * @author Kirk
  */
 public final class WifiSettings implements Serializable {
+
+    /**
+     * Enumerated type returned by {@link WifiSettings#connect(WifiManager)}
+     * 
+     * @author Kirk
+     */
+    public enum ConnectionOutcome {
+
+        /**
+         * Added and successfully connected
+         */
+        ADDED,
+
+        /**
+         * Already existed, so just enabled
+         */
+        ENABLED,
+
+        /**
+         * Failed
+         */
+        FAILED;
+
+    }
 
     /**
      * Enumeratio of supported wifi security protocols
@@ -523,7 +558,7 @@ public final class WifiSettings implements Serializable {
      * @return <code>true</code> if and only if the connection was successfully
      *         activated
      */
-    public boolean connect(WifiManager manager) {
+    public ConnectionOutcome connect(WifiManager manager) {
 
         String denormalizedSsid = denormalize(ssid);
 
@@ -531,14 +566,33 @@ public final class WifiSettings implements Serializable {
 
             if (configuration.SSID.equals(denormalizedSsid)) {
 
-                return manager.enableNetwork(configuration.networkId, false);
+                if (manager.enableNetwork(configuration.networkId, false)) {
+
+                    return ConnectionOutcome.ENABLED;
+
+                }
+
+                return ConnectionOutcome.FAILED;
 
             }
         }
 
         int networkId = addNetwork(manager, denormalizedSsid, password,
                 security);
-        return manager.enableNetwork(networkId, false);
+
+        if (networkId == -1) {
+
+            return ConnectionOutcome.FAILED;
+
+        }
+
+        if (manager.enableNetwork(networkId, false)) {
+
+            return ConnectionOutcome.ADDED;
+
+        }
+
+        return ConnectionOutcome.FAILED;
 
     }
 
@@ -548,6 +602,41 @@ public final class WifiSettings implements Serializable {
     public String getPassword() {
 
         return password;
+
+    }
+
+    /**
+     * Create the QR code {@link Bitmap}
+     * 
+     * @param size
+     *            size of the QR code bitmap to create
+     * 
+     * @return QR code {@link Bitmap}
+     * 
+     * @throws WriterException
+     *             if a zxing error occurs
+     */
+    public Bitmap getQrCode(int size) throws WriterException {
+
+        QRCodeWriter writer = new QRCodeWriter();
+        Map<EncodeHintType, Object> hints = new HashMap<EncodeHintType, Object>();
+        hints.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.L);
+        BitMatrix bitMatrix = writer.encode(toString(), BarcodeFormat.QR_CODE,
+                size, size, hints);
+        Bitmap bitmap = Bitmap
+                .createBitmap(size, size, Bitmap.Config.ARGB_8888);
+
+        for (int y = 0; y < bitMatrix.getHeight(); ++y) {
+
+            for (int x = 0; x < bitMatrix.getWidth(); ++x) {
+
+                bitmap.setPixel(x, y, (bitMatrix.get(x, y) ? Color.BLACK
+                        : Color.WHITE));
+
+            }
+        }
+
+        return bitmap;
 
     }
 

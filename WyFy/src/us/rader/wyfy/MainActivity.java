@@ -16,6 +16,7 @@
 package us.rader.wyfy;
 
 import us.rader.wyfy.model.WifiSettings;
+import us.rader.wyfy.model.WifiSettings.ConnectionOutcome;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -45,7 +46,8 @@ public final class MainActivity extends FragmentActivity implements
      * 
      * @author Kirk
      */
-    private class ConnectTask extends AsyncTask<Void, Void, Boolean> {
+    private class ConnectTask extends
+            AsyncTask<Void, Void, WifiSettings.ConnectionOutcome> {
 
         /**
          * Connect to wifi in a worker thread
@@ -56,7 +58,7 @@ public final class MainActivity extends FragmentActivity implements
          * @see android.os.AsyncTask#doInBackground(Void...)
          */
         @Override
-        protected Boolean doInBackground(Void... params) {
+        protected WifiSettings.ConnectionOutcome doInBackground(Void... params) {
 
             try {
 
@@ -66,7 +68,7 @@ public final class MainActivity extends FragmentActivity implements
             } catch (Exception e) {
 
                 Log.e(getClass().getName(), "error connecting to wifi", e); //$NON-NLS-1$
-                return false;
+                return ConnectionOutcome.FAILED;
 
             }
         }
@@ -75,27 +77,55 @@ public final class MainActivity extends FragmentActivity implements
          * Report outcome to user
          * 
          * @param result
-         *            <code>true</code> if and only if connectin attempt was
-         *            successful
+         *            value returned by
+         *            {@link WifiSettings#connect(WifiManager)} in the worker
+         *            thread
          * 
          * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
          */
         @Override
-        protected void onPostExecute(Boolean result) {
+        protected void onPostExecute(WifiSettings.ConnectionOutcome result) {
 
             String ssid = settings.getSsid();
-            alert(result ? getString(R.string.successfully_connected_to_wifi,
-                    ssid) : getString(R.string.failed_to_connect_to_wifi, ssid));
 
+            switch (result) {
+
+                case ADDED:
+
+                    getString(R.string.successfully_added_wifi, ssid);
+                    break;
+
+                case ENABLED:
+
+                    alert(getString(R.string.successfully_enabled_wifi, ssid));
+                    break;
+
+                case FAILED:
+
+                    alert(getString(R.string.failed_to_enable_wifi, ssid));
+                    break;
+
+                default:
+
+                    alert(getString(R.string.unrecognized_outcome));
+                    break;
+
+            }
+
+            if (qrCodeFragment != null) {
+
+                qrCodeFragment.updateQrCode(settings);
+
+            }
         }
 
     }
 
     /**
-     * if <code>true</code>, call {@link WifiSettings#connect(WifiManager)} in
-     * {@link #onResume()}
+     * Value used to enable a call to {@link WifiSettings#connect(WifiManager)}
+     * as a side-effect of {@link #onStart()}
      */
-    private boolean        connect;
+    private boolean connectOnStart;
 
     /**
      * {@link QrCodeFragment} to notify when the {@link #settings} change
@@ -153,6 +183,10 @@ public final class MainActivity extends FragmentActivity implements
 
                 return writeTag();
 
+            case R.id.share_qr_item:
+
+                return shareQrCode();
+
             default:
 
                 return super.onOptionsItemSelected(item);
@@ -195,7 +229,12 @@ public final class MainActivity extends FragmentActivity implements
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-        connect = false;
+
+        if (savedInstanceState != null) {
+
+            return;
+
+        }
 
         if (settings == null) {
 
@@ -210,7 +249,12 @@ public final class MainActivity extends FragmentActivity implements
                     try {
 
                         settings = WifiSettings.parse(uri);
-                        connect = true;
+
+                        if (settings != null) {
+
+                            connectOnStart = true;
+
+                        }
 
                     } catch (Exception e) {
 
@@ -219,12 +263,6 @@ public final class MainActivity extends FragmentActivity implements
                     }
                 }
             }
-        }
-
-        if (savedInstanceState != null) {
-
-            return;
-
         }
 
         FragmentManager fragmentManager = getSupportFragmentManager();
@@ -250,19 +288,20 @@ public final class MainActivity extends FragmentActivity implements
     }
 
     /**
-     * Call {@link WifiSettings#connect(WifiManager)} if {@link #connect} is
-     * <code>true</code>
+     * Call {@link WifiSettings#connect(WifiManager)} if {@link #settings} is
+     * not <code>null</code>
      * 
      * @see android.support.v4.app.FragmentActivity#onResume()
      */
     @Override
-    protected void onResume() {
+    protected void onStart() {
 
-        super.onResume();
+        super.onStart();
 
-        if (connect && (settings != null)) {
+        if (connectOnStart) {
 
             new ConnectTask().execute();
+            connectOnStart = false;
 
         }
     }
@@ -291,6 +330,35 @@ public final class MainActivity extends FragmentActivity implements
                 });
 
         builder.show();
+
+    }
+
+    /**
+     * Handle "Share QR..." menu item
+     * 
+     * This shows {@link QrCodeFragment} in single-pane mode, or invokes
+     * {@link QrCodeFragment#shareQrCode()} in two-pane mode
+     * 
+     * @return <code>true</code>
+     */
+    private boolean shareQrCode() {
+
+        if (qrCodeFragment == null) {
+
+            FragmentManager manager = getSupportFragmentManager();
+            FragmentTransaction transaction = manager.beginTransaction();
+            transaction.replace(R.id.single_fragment,
+                    QrCodeFragment.newInstance(settings));
+            transaction.addToBackStack(null);
+            transaction.commit();
+
+        } else {
+
+            qrCodeFragment.shareQrCode();
+
+        }
+
+        return true;
 
     }
 

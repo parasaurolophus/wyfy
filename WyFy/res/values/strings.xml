@@ -11,8 +11,7 @@
     <string name="wpa_label">WPA</string>
     <string name="hidden_label">Hidden</string>
     <string name="title_activity_write_tag">WriteTagActivity</string>
-    <string name="hello_world">Hello world!</string>
-    <string name="tap_tag">Tap tag to write...</string>
+    <string name="tap_tag">Tap tag to write&#8230;</string>
     <string name="error_procesing_tag">Error procesing tag</string>
     <string name="incompatible_tag">Incompatible tag; please try another</string>
     <string name="error_formatting_tag">Error formatting tag</string>
@@ -20,8 +19,13 @@
     <string name="read_only_tag">Read-only tag; please try another</string>
     <string name="tag_size_exceeded">Message size %1$d exceeds tag size %2$d; please try another</string>
     <string name="success_writing_tag">Successfully wrote to tag</string>
-    <string name="write_tag_label">Write tag...</string>
-    <string name="successfully_connected_to_wifi">Successfully connected to %1$s</string>
-    <string name="failed_to_connect_to_wifi">Failed to connect to %1$s</string>
+    <string name="write_tag_label">Write tag&#8230;</string>
+    <string name="successfully_added_wifi">Successfully added %1$s</string>
+    <string name="successfully_enabled_wifi">Successfully enabled %1$s</string>
+    <string name="failed_to_enable_wifi">Failed to enable connection to %1$s</string>
+    <string name="qr_code_label">QR Code</string>
+    <string name="provider_authority_file">us.rader.wyfy.provider.file</string>
+    <string name="share_label">Share QR&#8230;</string>
+    <string name="unrecognized_outcome">Unrecognized outcome indicated</string>
 
 </resources>

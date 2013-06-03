@@ -43,6 +43,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="us.rader.wyfy.MainActivity" />
         </activity>
+        <provider android:name=".provider.FileProvider" android:authorities="@string/provider_authority_file" android:grantUriPermissions="true" android:exported="true"></provider>
     </application>
 
 </manifest>

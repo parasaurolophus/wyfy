@@ -1,4 +1,5 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
     <item android:id="@+id/write_tag_item" android:title="@string/write_tag_label" android:showAsAction="never"></item>
+    <item android:id="@+id/share_qr_item" android:title="@string/share_label" android:showAsAction="never"></item>
 
 </menu>
