@@ -1,0 +1,104 @@
+<html>
+
+<head>
+<title>WyFy</title>
+</head>
+
+<body>
+
+	<h1>WyFy</h1>
+
+	<p>Android app that allows a device to connect to a wi fi network
+		using credentials stored in a QR code or NFC tag.</p>
+
+	<h2>Features</h2>
+
+	<ul>
+
+		<li>Enter wi fi parameters in the UI (SSID, security protocol,
+			password etc.)</li>
+
+		<li>Write those parameters to a NDEF-compatible NFC tag</li>
+
+		<li>Share those parameters as QR code image</li>
+
+		<li>Connect to a wi fi network automatically by tapping a NFC tag
+			created by this app</li>
+
+	</ul>
+
+	<p>
+		Note that the contents of the QR code images is compatible with that
+		used for storing wi fi parameters by popular QR code scanning apps
+		like <a
+			href="https://play.google.com/store/apps/details?id=com.google.zxing.client.android">Barcode&nbsp;Scanner</a>,
+		<a href="https://play.google.com/store/apps/details?id=la.droid.qr">QR&nbsp;Droid</a>
+		and so on. Use any such app to scan QR codes created by this one.
+	</p>
+
+	<p>The contents of NFC tags created by this app are NDEF "U"
+		records with URI's in the identical format to that used in the QR
+		codes. This allows both for maximum code re-use (smaller size, fewer
+		bugs) and also maximizes potential inter-operability with other apps.</p>
+
+	<h2>Why this app?</h2>
+
+	<p>There are plenty of of apps in the Play store with similar
+		functionality and more elaborate feature sets. You might consider
+		using this one because:</p>
+
+	<ul>
+
+		<li>It is small and lightweight, focused exactly on its intended
+			purpose</li>
+
+		<li>It requests no permissions beyond those it actually needs for
+			its user-visible functionality (NFC, wi fi settings)</li>
+
+		<li>It is completely ad free, generates no notification-bar spam
+			or the like</li>
+
+		<li>It is open-source, offering the opportunity not only to
+			verify that it does not contain any malware but also to use it as an
+			example of how to accomplish a number of Android app programming
+			tasks (app life-cycle, sharing via intents and content providers, NFC
+			etc.)</li>
+
+	</ul>
+
+	<h2>Acknowledgments</h2>
+
+	<p>
+		This app relies on the open-source <a
+			href="http://code.google.com/p/zxing/">zxing</a> library for creating
+		QR code images. See
+	</p>
+
+	<blockquote>
+		<a href="http://code.google.com/p/zxing/">http://code.google.com/p/zxing/</a>
+	</blockquote>
+
+	<p>for its copyright and licensing notices, documentation, source
+		code etc.</p>
+
+	<p>
+		Other than the <a href="http://code.google.com/p/zxing/">zxing</a>
+		library, 100% of the source code for this app can be found in the
+		github repository at
+	</p>
+
+	<blockquote>
+		<span style="font-style: italic;">TODO: insert link to github
+			here</span>
+	</blockquote>
+
+	<p>
+		Both the source and executable code for this app is freely
+		redistributable under the terms of the <a
+			href="http://www.apache.org/licenses/LICENSE-2.0.html">Apache
+			License 2.0</a>
+	</p>
+
+</body>
+
+</html>

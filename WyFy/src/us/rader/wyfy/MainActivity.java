@@ -17,12 +17,15 @@ package us.rader.wyfy;
 
 import us.rader.wyfy.model.WifiSettings;
 import us.rader.wyfy.model.WifiSettings.ConnectionOutcome;
+import us.rader.wyfy.nfc.ForegroundDispatchActivity;
+import us.rader.wyfy.nfc.NdefReaderActivity;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
+import android.nfc.NdefMessage;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -92,7 +95,7 @@ public final class MainActivity extends FragmentActivity implements
 
                 case ADDED:
 
-                    getString(R.string.successfully_added_wifi, ssid);
+                    alert(getString(R.string.successfully_added_wifi, ssid));
                     break;
 
                 case ENABLED:
@@ -107,7 +110,8 @@ public final class MainActivity extends FragmentActivity implements
 
                 default:
 
-                    alert(getString(R.string.unrecognized_outcome));
+                    alert(getString(R.string.unrecognized_connection_outcome,
+                            result));
                     break;
 
             }
@@ -122,10 +126,16 @@ public final class MainActivity extends FragmentActivity implements
     }
 
     /**
+     * {@link Activity#startActivityForResult(Intent, int)} request code when
+     * launching {@link WriteTagActivity}
+     */
+    public static final int REQUEST_WRITE_TAG = 1;
+
+    /**
      * Value used to enable a call to {@link WifiSettings#connect(WifiManager)}
      * as a side-effect of {@link #onStart()}
      */
-    private boolean connectOnStart;
+    private boolean         connectOnStart;
 
     /**
      * {@link QrCodeFragment} to notify when the {@link #settings} change
@@ -133,12 +143,12 @@ public final class MainActivity extends FragmentActivity implements
      * Note that this will be <code>null</code> on devices that display only a
      * single pane
      */
-    private QrCodeFragment qrCodeFragment;
+    private QrCodeFragment  qrCodeFragment;
 
     /**
      * Model
      */
-    private WifiSettings   settings;
+    private WifiSettings    settings;
 
     /**
      * Initialize {@link #settings} to <code>null</code>
@@ -363,6 +373,76 @@ public final class MainActivity extends FragmentActivity implements
     }
 
     /**
+     * Handle the response from another activity started by this one for its
+     * result
+     * 
+     * @param requestCode
+     *            the request code to which this is the response
+     * 
+     * @param resultCode
+     *            the result code for the response
+     * 
+     * @param resultData
+     *            the result data from the response
+     * 
+     * @see android.support.v4.app.FragmentActivity#onActivityResult(int, int,
+     *      android.content.Intent)
+     */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode,
+            Intent resultData) {
+
+        super.onActivityResult(requestCode, resultCode, resultData);
+
+        switch (requestCode) {
+
+            case REQUEST_WRITE_TAG:
+
+                onTagWritten(resultCode, resultData);
+                break;
+
+            default:
+
+                alert(getString(R.string.unrecognized_request));
+                break;
+
+        }
+    }
+
+    /**
+     * Handle result from {@link WriteTagActivity}
+     * 
+     * @param resultCode
+     *            result code
+     * 
+     * @param resultData
+     *            result data
+     */
+    private void onTagWritten(int resultCode, Intent resultData) {
+
+        switch (resultCode) {
+
+            case RESULT_CANCELED:
+
+                alert(getString(R.string.canceled));
+                break;
+
+            case RESULT_OK:
+
+                NdefMessage message = resultData
+                        .getParcelableExtra(ForegroundDispatchActivity.EXTRA_RESULT);
+                alert(NdefReaderActivity.decodePayload(message.getRecords()[0]));
+                break;
+
+            default:
+
+                alert(getString(R.string.unrecognized_result_code, resultCode));
+
+        }
+
+    }
+
+    /**
      * Start {@Link WriteTagActivity}
      * 
      * @return <code>true</code>
@@ -372,7 +452,7 @@ public final class MainActivity extends FragmentActivity implements
         Intent intent = new Intent(this, WriteTagActivity.class);
         Uri uri = Uri.parse(settings.toString());
         intent.setData(uri);
-        startActivity(intent);
+        startActivityForResult(intent, REQUEST_WRITE_TAG);
         return true;
 
     }

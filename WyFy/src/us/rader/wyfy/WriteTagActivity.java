@@ -17,23 +17,17 @@ package us.rader.wyfy;
 
 import java.io.UnsupportedEncodingException;
 
+import us.rader.wyfy.nfc.NdefWriterActivity;
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.PendingIntent;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.net.Uri;
 import android.nfc.NdefMessage;
 import android.nfc.NdefRecord;
-import android.nfc.NfcAdapter;
-import android.nfc.Tag;
-import android.nfc.tech.Ndef;
-import android.nfc.tech.NdefFormatable;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.NavUtils;
 import android.util.Log;
 import android.view.Menu;
@@ -44,89 +38,19 @@ import android.view.MenuItem;
  * 
  * @author Kirk
  */
-public final class WriteTagActivity extends Activity {
-
-    /**
-     * Write a {@link Tag} in a worker thread
-     * 
-     * @author Kirk
-     */
-    private class ProcessTagTask extends AsyncTask<Tag, Void, String> {
-
-        /**
-         * Write a {@link Tag} in a worker thread
-         * 
-         * @param tags
-         *            <code>tags[0]</code> is the {@link Tag} to write
-         * 
-         * @return message to display to the user describing the outcome
-         * 
-         * @see android.os.AsyncTask#doInBackground(Tag...)
-         */
-        @Override
-        protected String doInBackground(Tag... tags) {
-
-            try {
-
-                return writeTag(tags[0]);
-
-            } catch (Exception e) {
-
-                Log.e(getClass().getName(), "doInBackground", e); //$NON-NLS-1$
-                return getString(R.string.error_procesing_tag);
-
-            }
-        }
-
-        /**
-         * Display <code>result</code> to the user
-         * 
-         * @param result
-         *            the message to display
-         * 
-         * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
-         */
-        @Override
-        protected void onPostExecute(String result) {
-
-            alert(result);
-
-        }
-
-    }
-
-    /**
-     * Cached {@link NfcAdapter}
-     * 
-     * @see #onPause()
-     * @see #onResume()
-     */
-    private NfcAdapter     adapter;
-
-    /**
-     * Cached {@link NfcAdapter} used in foreground dispatch
-     * 
-     * @see #onResume()
-     */
-    private IntentFilter[] filters;
-
-    /**
-     * Cached {@link PendingIntent} used in foreground dispatch
-     * 
-     * @see #onResume()
-     */
-    private PendingIntent  pendingIntent;
+public final class WriteTagActivity extends NdefWriterActivity {
 
     /**
      * The {@link Uri} to write
      */
-    private Uri            uri;
+    private Uri uri;
 
     /**
      * Initialize {@link #uri} to <code>null</code>
      */
     public WriteTagActivity() {
 
+        super(0);
         uri = null;
 
     }
@@ -180,6 +104,38 @@ public final class WriteTagActivity extends Activity {
     }
 
     /**
+     * Create a {@link NdefMessage} from {@link #uri}
+     * 
+     * @param currentMessage
+     *            ignored
+     * 
+     * @return {@link NdefMessage}
+     */
+    @Override
+    protected NdefMessage createNdefMessage(NdefMessage currentMessage) {
+
+        try {
+
+            byte[] bytes = uri.toString().getBytes("US-ASCII"); //$NON-NLS-1$
+            byte[] payload = new byte[bytes.length + 1];
+            payload[0] = 0;
+            System.arraycopy(bytes, 0, payload, 1, bytes.length);
+            NdefRecord record = new NdefRecord(NdefRecord.TNF_WELL_KNOWN,
+                    NdefRecord.RTD_URI, null, payload);
+            NdefMessage ndefMessage = new NdefMessage(
+                    new NdefRecord[] { record });
+            return ndefMessage;
+
+        } catch (UnsupportedEncodingException e) {
+
+            Log.e(getClass().getName(), "createNdefMessage", e); //$NON-NLS-1$
+            return null;
+
+        }
+
+    }
+
+    /**
      * Prepare this instance to be displayed
      * 
      * @param savedInstanceState
@@ -189,9 +145,16 @@ public final class WriteTagActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_write_tag);
+        setContentView(R.layout.write_tag_activity);
         // Show the Up button in the action bar.
         setupActionBar();
+
+        if (savedInstanceState != null) {
+
+            return;
+
+        }
+
         Intent intent;
 
         if (uri == null) {
@@ -212,113 +175,10 @@ public final class WriteTagActivity extends Activity {
 
         }
 
-        adapter = NfcAdapter.getDefaultAdapter(this);
-        intent = new Intent(this, getClass());
-        intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
-        IntentFilter ndefFilter = new IntentFilter(
-                NfcAdapter.ACTION_NDEF_DISCOVERED);
-        IntentFilter tagFilter = new IntentFilter(
-                NfcAdapter.ACTION_TAG_DISCOVERED);
-        filters = new IntentFilter[] { ndefFilter, tagFilter };
-
-    }
-
-    /**
-     * Write a {@link Tag} detected by foreground dispatch
-     * 
-     * @param intent
-     *            the {@link Intent} supplied in response to a foreground
-     *            dispatch request
-     * 
-     * @see android.app.Activity#onNewIntent(android.content.Intent)
-     * @see #onResume()
-     * @see ProcessTagTask
-     */
-    @Override
-    protected void onNewIntent(Intent intent) {
-
-        super.onNewIntent(intent);
-        Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
-        new ProcessTagTask().execute(tag);
-
-    }
-
-    /**
-     * Disable foreground dispatch
-     * 
-     * @see android.app.Activity#onPause()
-     * @see #onResume()
-     */
-    @Override
-    protected void onPause() {
-
-        super.onPause();
-        adapter.disableForegroundDispatch(this);
-
-    }
-
-    /**
-     * Enable foreground dispatch
-     * 
-     * @see android.app.Activity#onResume()
-     * @see #onPause()
-     * @see #onNewIntent(Intent)
-     */
-    @Override
-    protected void onResume() {
-
-        super.onResume();
-        adapter.enableForegroundDispatch(this, pendingIntent, filters, null);
-
-    }
-
-    /**
-     * Display <code>message</code> in an {@link AlertDialog}
-     * 
-     * @param message
-     *            the message to display
-     */
-    private void alert(String message) {
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage(message);
-
-        builder.setNeutralButton(android.R.string.ok,
-                new DialogInterface.OnClickListener() {
-
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-
-                        dialog.dismiss();
-                        finish();
-
-                    }
-                });
-
-        builder.show();
-
-    }
-
-    /**
-     * Create a {@link NdefMessage} from {@link #uri}
-     * 
-     * @return {@link NdefMessage}
-     * 
-     * @throws UnsupportedEncodingException
-     *             if there is a bug in the Java virtual machine
-     */
-    private NdefMessage createNdefMessage() throws UnsupportedEncodingException {
-
-        byte[] bytes = uri.toString().getBytes("US-ASCII"); //$NON-NLS-1$
-        byte[] payload = new byte[bytes.length + 1];
-        payload[0] = 0;
-        System.arraycopy(bytes, 0, payload, 1, bytes.length);
-        NdefRecord record = new NdefRecord(NdefRecord.TNF_WELL_KNOWN,
-                NdefRecord.RTD_URI, null, payload);
-        NdefMessage ndefMessage = new NdefMessage(new NdefRecord[] { record });
-        return ndefMessage;
-
+        FragmentManager manager = getSupportFragmentManager();
+        FragmentTransaction transaction = manager.beginTransaction();
+        transaction.add(R.id.write_tag_frame, new WriteTagFragment());
+        transaction.commit();
     }
 
     /**
@@ -332,121 +192,6 @@ public final class WriteTagActivity extends Activity {
             getActionBar().setDisplayHomeAsUpEnabled(true);
 
         }
-
-    }
-
-    /**
-     * Write {@link #uri} as a NDEF "U" record to the given
-     * {@link NdefFormatable} tag
-     * 
-     * @param formatable
-     *            the {@link NdefFormatable} tag
-     * 
-     * @return message describing the outcome
-     */
-    private String writeFormatable(NdefFormatable formatable) {
-
-        try {
-
-            formatable.connect();
-
-            try {
-
-                NdefMessage ndefMessage = createNdefMessage();
-                formatable.format(ndefMessage);
-                return getString(R.string.success_writing_tag);
-
-            } finally {
-
-                formatable.close();
-            }
-
-        } catch (Exception e) {
-
-            Log.e(getClass().getName(), "writeFormatable", e); //$NON-NLS-1$
-            return getString(R.string.error_formatting_tag);
-
-        }
-    }
-
-    /**
-     * Write {@link #uri} as a NDEF "U" record to the given {@link Ndef}
-     * formatted tag
-     * 
-     * @param ndef
-     *            the {@link Ndef} formatted tag
-     * 
-     * @return message describing the outcome
-     */
-    private String writeNdef(Ndef ndef) {
-
-        try {
-
-            if (!ndef.isWritable()) {
-
-                return getString(R.string.read_only_tag);
-
-            }
-
-            NdefMessage message = createNdefMessage();
-            byte[] bytes = message.toByteArray();
-            int tagSize = ndef.getMaxSize();
-
-            if (bytes.length > tagSize) {
-
-                return getString(R.string.tag_size_exceeded, bytes.length,
-                        tagSize);
-
-            }
-
-            ndef.connect();
-
-            try {
-
-                ndef.writeNdefMessage(message);
-                return getString(R.string.success_writing_tag);
-
-            } finally {
-
-                ndef.close();
-
-            }
-
-        } catch (Exception e) {
-
-            Log.e(getClass().getName(), "writeNdef", e); //$NON-NLS-1$
-            return getString(R.string.error_writing_tag);
-
-        }
-    }
-
-    /**
-     * Write {@link #uri} as a NDEF "U" message to the given {@link Tag}
-     * 
-     * @param tag
-     *            the {@link Tag}
-     * 
-     * @return message to display to the user describing the outcome
-     */
-    private String writeTag(Tag tag) {
-
-        Ndef ndef = Ndef.get(tag);
-
-        if (ndef != null) {
-
-            return writeNdef(ndef);
-
-        }
-
-        NdefFormatable formatable = NdefFormatable.get(tag);
-
-        if (formatable != null) {
-
-            return writeFormatable(formatable);
-
-        }
-
-        return getString(R.string.incompatible_tag);
 
     }
 
