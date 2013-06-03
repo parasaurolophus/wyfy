@@ -50,9 +50,15 @@ public final class QrCodeFragment extends Fragment {
      * Invoke {@link QrCodeFragment#updateQrCode(WifiSettings)} in the UI thread
      * after a short delay in a worker thread.
      * 
+     * <p>
      * Work around bugs due to the fact that Android doesn't finalize all of its
      * layout properties until long after it is too late during initial activity
      * / fragment initialization
+     * </p>
+     * 
+     * <p>
+     * TODO: investigate some way to eliminate this
+     * </p>
      * 
      * @author Kirk
      */
