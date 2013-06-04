@@ -54,10 +54,16 @@ public final class FileProvider extends ContentProvider {
     static {
 
         mimeTypes = new HashMap<String, String>();
-        mimeTypes.put(".png", //$NON-NLS-1$
-                "image/png"); //$NON-NLS-1$
+        mimeTypes.put(".gif", //$NON-NLS-1$
+                "image/gif"); //$NON-NLS-1$
         mimeTypes.put(".jpg", //$NON-NLS-1$
                 "image/jpeg"); //$NON-NLS-1$
+        mimeTypes.put(".png", //$NON-NLS-1$
+                "image/png"); //$NON-NLS-1$
+        mimeTypes.put(".html", //$NON-NLS-1$
+                "text/html"); //$NON-NLS-1$
+        mimeTypes.put(".txt", //$NON-NLS-1$
+                "text/plain"); //$NON-NLS-1$
 
     }
 
@@ -102,7 +108,7 @@ public final class FileProvider extends ContentProvider {
             }
         }
 
-        return "application/binary"; //$NON-NLS-1$
+        return "application/octet-stream"; //$NON-NLS-1$
 
     }
 
