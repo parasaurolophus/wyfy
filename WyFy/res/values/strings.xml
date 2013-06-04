@@ -2,7 +2,6 @@
 <resources>
 
     <string name="app_name">WyFy</string>
-    <string name="action_settings">Settings</string>
     <string name="ssid_label">SSID</string>
     <string name="password_label">Password</string>
     <string name="security_label">Security</string>
@@ -12,13 +11,11 @@
     <string name="hidden_label">Hidden</string>
     <string name="title_activity_write_tag">WriteTagActivity</string>
     <string name="tap_tag">Tap tag to write&#8230;</string>
-    <string name="error_procesing_tag">Error procesing tag</string>
     <string name="incompatible_tag">Incompatible tag; please try another</string>
     <string name="error_formatting_tag">Error formatting tag</string>
     <string name="error_writing_tag">Error writing tag</string>
     <string name="read_only_tag">Read-only tag; please try another</string>
     <string name="tag_size_exceeded">Message size %1$d exceeds tag size %2$d; please try another</string>
-    <string name="success_writing_tag">Successfully wrote to tag</string>
     <string name="write_tag_label">Write tag&#8230;</string>
     <string name="successfully_added_wifi">Successfully added %1$s</string>
     <string name="successfully_enabled_wifi">Successfully enabled %1$s</string>
@@ -32,7 +29,7 @@
     <string name="unrecognized_result_code">Unrecognized result code %1$d</string>
     <string name="canceled">Canceled</string>
     <string name="unrecognized_connection_outcome">Unrecognized connection outcome %1$s</string>
-    <string name="null_message">Status ok but message is null</string>
+    <string name="null_message">Status OK but message is null</string>
     <string name="empty_message">Empty message</string>
     <string name="unparseable_payload">Unparseable payload</string>
 

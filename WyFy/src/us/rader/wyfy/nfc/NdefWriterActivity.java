@@ -33,6 +33,59 @@ import android.util.Log;
 public abstract class NdefWriterActivity extends NdefReaderActivity {
 
     /**
+     * Create a AAR {@link NdefRecord} for the given {@link Package}
+     * 
+     * @param pkg
+     *            the {@link Package}
+     * 
+     * @return AAR {@link NdefRecord}
+     */
+    public static NdefRecord createAar(Package pkg) {
+
+        return createAar(pkg.getName());
+
+    }
+
+    /**
+     * Create a AAR {@link NdefRecord} for the given {@link Package} name
+     * 
+     * <p>
+     * Even though AAR records will only be used by devices running ice cream
+     * sandwich or later, this method uses API's available since gingerbread mr1
+     * to create them. They will be benignly ignored by older devices when
+     * reading tags that include them.
+     * </p>
+     * 
+     * <p>
+     * TODO: inferred this format by inspecting some actual AAR records created
+     * using {@link NdefRecord#createApplicationRecord(String)} (that only
+     * became available in ice cream sandwich). Should investigate if there is,
+     * somewhere, an official public specification.
+     * </p>
+     * 
+     * @param pkg
+     *            the {@link Package} name
+     * 
+     * @return AAR {@link NdefRecord}
+     */
+    public static NdefRecord createAar(String pkg) {
+
+        try {
+
+            byte[] type = "android.com:pkg".getBytes("US-ASCII"); //$NON-NLS-1$//$NON-NLS-2$
+            byte[] payload = pkg.getBytes("US-ASCII"); //$NON-NLS-1$
+            return new NdefRecord(NdefRecord.TNF_EXTERNAL_TYPE, type, null,
+                    payload);
+
+        } catch (UnsupportedEncodingException e) {
+
+            Log.e(NdefWriterActivity.class.getName(), "createAar", e); //$NON-NLS-1$
+            throw new IllegalArgumentException(e);
+
+        }
+    }
+
+    /**
      * Return MIME {@link NdefRecord}
      * 
      * @param type

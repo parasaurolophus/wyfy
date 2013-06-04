@@ -112,7 +112,9 @@ public final class WriteTagActivity extends NdefWriterActivity {
     protected NdefMessage createNdefMessage(NdefMessage currentMessage) {
 
         NdefRecord record = createUri(uri);
-        NdefMessage ndefMessage = new NdefMessage(new NdefRecord[] { record });
+        NdefRecord aar = createAar(getClass().getPackage());
+        NdefMessage ndefMessage = new NdefMessage(new NdefRecord[] { record,
+                aar });
         return ndefMessage;
 
     }
