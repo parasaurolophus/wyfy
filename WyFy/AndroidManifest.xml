@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="us.rader.wyfy"
-    android:versionCode="16"
-    android:versionName="1.16" >
+    android:versionCode="17"
+    android:versionName="1.17" >
 
     <uses-sdk
         android:minSdkVersion="10"
@@ -34,7 +34,16 @@
 
                 <data android:scheme="wifi" />
             </intent-filter>
-        </activity>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:mimeType="application/x-wyfy" />
+            </intent-filter>
+            </activity>
         <activity
             android:name="us.rader.wyfy.WriteTagActivity"
             android:label="@string/title_activity_write_tag"

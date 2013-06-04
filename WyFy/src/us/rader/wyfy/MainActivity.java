@@ -27,8 +27,10 @@ import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.nfc.NdefMessage;
 import android.nfc.NdefRecord;
+import android.nfc.NfcAdapter;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -251,19 +253,16 @@ public final class MainActivity extends FragmentActivity implements
 
                 if (uri != null) {
 
-                    try {
+                    initialize(uri.toString());
 
-                        settings = WifiSettings.parse(uri);
+                } else {
 
-                        if (settings != null) {
+                    Parcelable[] ndefMessages = intent
+                            .getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
 
-                            connectOnStart = true;
+                    if ((ndefMessages != null) && (ndefMessages.length > 0)) {
 
-                        }
-
-                    } catch (Exception e) {
-
-                        Log.e(getClass().getName(), "error parsing URI", e); //$NON-NLS-1$
+                        initialize((NdefMessage) ndefMessages[0]);
 
                     }
                 }
@@ -296,6 +295,70 @@ public final class MainActivity extends FragmentActivity implements
 
         transaction.commit();
 
+    }
+
+    /**
+     * Initialize from a legacy {@link NdefMessage}
+     * 
+     * Provide backward compatibility for tags written with older versions of
+     * this app
+     * 
+     * @param ndefMessage
+     *            legacy {@link NdefMessage}
+     */
+    private void initialize(NdefMessage ndefMessage) {
+
+        try {
+            NdefRecord[] records = ndefMessage.getRecords();
+            if (records.length > 0) {
+
+                NdefRecord record = records[0];
+
+                if (record.getTnf() != NdefRecord.TNF_MIME_MEDIA) {
+
+                    return;
+
+                }
+
+                String type = new String(record.getType(), "US-ASCII"); //$NON-NLS-1$
+
+                if ("application/x-wyfy".equals(type)) { //$NON-NLS-1$
+
+                    String payload = new String(record.getPayload(), "US-ASCII"); //$NON-NLS-1$
+                    initialize(payload);
+
+                }
+            }
+
+        } catch (Exception e) {
+
+            Log.e(getClass().getName(), "initializeNdefMessage", e); //$NON-NLS-1$
+
+        }
+    }
+
+    /**
+     * Initialize {@link #settings} from the given WIFI: {@link Uri}
+     * 
+     * @param uri
+     *            WIFI: {@link Uri}
+     */
+    private void initialize(String uri) {
+        try {
+
+            settings = WifiSettings.parse(uri);
+
+            if (settings != null) {
+
+                connectOnStart = true;
+
+            }
+
+        } catch (Exception e) {
+
+            Log.e(getClass().getName(), "error parsing URI", e); //$NON-NLS-1$
+
+        }
     }
 
     /**
