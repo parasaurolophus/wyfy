@@ -1,0 +1,8 @@
+.metadata/*
+**/*.class
+**/bin/*
+**/gen/*
+**/.settings/*
+**/.classpath
+**/.project
+**/libs/*
