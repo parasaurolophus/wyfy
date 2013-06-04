@@ -17,6 +17,8 @@ package us.rader.wyfy;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import us.rader.wyfy.model.WifiSettings;
 import us.rader.wyfy.provider.FileProvider;
@@ -36,6 +38,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.google.zxing.WriterException;
+
 /**
  * {link Fragment} to display the QR code representation of the current WIFI:
  * URI
@@ -45,8 +49,8 @@ import android.widget.ImageView;
 public final class QrCodeFragment extends Fragment {
 
     /**
-     * Invoke {@link QrCodeFragment#updateQrCode(WifiSettings)} in the UI thread
-     * after a short delay in a worker thread.
+     * Create the QR image {@link Bitmap} in a worker thread and update
+     * {@link QrCodeFragment#qrCode} in the UI thread
      * 
      * @author Kirk
      */
@@ -54,7 +58,14 @@ public final class QrCodeFragment extends Fragment {
             AsyncTask<WifiSettings, Void, Bitmap> {
 
         /**
-         * Sleep briefly
+         * Return the {@link Bitmap} for the QR code image representing
+         * <code>settings[0]</code>
+         * 
+         * TODO: this will return <code>null</code> when invoked before the UI
+         * is actually ready to be rendered, which happens in
+         * {@link QrCodeFragment#onResume()} in single-pane mode; investigate
+         * ways to eliminate the resulting kludgery in
+         * {@link #onPostExecute(Bitmap)}
          * 
          * @param settings
          *            Get QR code image from <code>settings[0]</code>
@@ -62,6 +73,8 @@ public final class QrCodeFragment extends Fragment {
          * @return {@link Bitmap} for QR code image
          * 
          * @see android.os.AsyncTask#doInBackground(WifiSettings...)
+         * @see WifiSettings#getQrCode(int)
+         * @see #onPostExecute(Bitmap)
          */
         @Override
         protected Bitmap doInBackground(WifiSettings... settings) {
@@ -82,7 +95,7 @@ public final class QrCodeFragment extends Fragment {
 
                 }
 
-            } catch (Exception e) {
+            } catch (WriterException e) {
 
                 Log.e(getClass().getName(), "doInBackground", e); //$NON-NLS-1$
 
@@ -99,12 +112,35 @@ public final class QrCodeFragment extends Fragment {
          *            the {@link Bitmap}
          * 
          * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
+         * @see #doInBackground(WifiSettings...)
          */
         @Override
         protected void onPostExecute(Bitmap bitmap) {
 
-            qrCode.setImageBitmap(bitmap);
+            if (bitmap == null) {
 
+                // TODO: eliminate this kludge to force another refresh after
+                // giving the UI time to settle down
+                Timer timer = new Timer();
+
+                TimerTask timerTask = new TimerTask() {
+
+                    @Override
+                    public void run() {
+
+                        new UpdateQrCodeTask().execute(settings);
+
+                    }
+
+                };
+
+                timer.schedule(timerTask, 500);
+
+            } else {
+
+                qrCode.setImageBitmap(bitmap);
+
+            }
         }
 
     }

@@ -45,7 +45,7 @@ public abstract class NdefReaderActivity extends
      * TODO: copy the complete list of prefixes to this implementation
      * </p>
      */
-    private static final String[] URI_PREFIXES = { "", //$NON-NLS-1$
+    protected static final String[] URI_PREFIXES = { "", //$NON-NLS-1$
 
             // 1
             "http://www.", //$NON-NLS-1$
@@ -64,7 +64,7 @@ public abstract class NdefReaderActivity extends
 
             // 6
             "mailto:" //$NON-NLS-1$
-                                               };
+                                                 };
 
     /**
      * Decode the payload of certain kinds of {@link NdefRecord}

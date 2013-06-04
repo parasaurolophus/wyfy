@@ -325,16 +325,19 @@ public abstract class ForegroundDispatchActivity<ResultType extends Parcelable>
      */
     protected void onTagProcessed(ResultType result, boolean cancelled) {
 
-        Intent intent = new Intent();
+        if (result == null) {
 
-        if (result != null) {
+            setResult(RESULT_CANCELED);
 
+        } else {
+
+            int resultCode = (cancelled ? RESULT_CANCELED : RESULT_OK);
+            Intent intent = new Intent();
             intent.putExtra(EXTRA_RESULT, result);
+            setResult(resultCode, intent);
 
         }
 
-        int resultCode = (cancelled ? RESULT_CANCELED : RESULT_OK);
-        setResult(resultCode, intent);
         finish();
 
     }

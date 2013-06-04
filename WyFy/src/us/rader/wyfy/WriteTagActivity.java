@@ -15,8 +15,6 @@
  */
 package us.rader.wyfy;
 
-import java.io.UnsupportedEncodingException;
-
 import us.rader.wyfy.nfc.NdefWriterActivity;
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -29,7 +27,6 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.NavUtils;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -114,24 +111,9 @@ public final class WriteTagActivity extends NdefWriterActivity {
     @Override
     protected NdefMessage createNdefMessage(NdefMessage currentMessage) {
 
-        try {
-
-            byte[] bytes = uri.toString().getBytes("US-ASCII"); //$NON-NLS-1$
-            byte[] payload = new byte[bytes.length + 1];
-            payload[0] = 0;
-            System.arraycopy(bytes, 0, payload, 1, bytes.length);
-            NdefRecord record = new NdefRecord(NdefRecord.TNF_WELL_KNOWN,
-                    NdefRecord.RTD_URI, null, payload);
-            NdefMessage ndefMessage = new NdefMessage(
-                    new NdefRecord[] { record });
-            return ndefMessage;
-
-        } catch (UnsupportedEncodingException e) {
-
-            Log.e(getClass().getName(), "createNdefMessage", e); //$NON-NLS-1$
-            return null;
-
-        }
+        NdefRecord record = createUri(uri);
+        NdefMessage ndefMessage = new NdefMessage(new NdefRecord[] { record });
+        return ndefMessage;
 
     }
 
