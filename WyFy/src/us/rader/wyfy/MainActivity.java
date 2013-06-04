@@ -26,6 +26,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.nfc.NdefMessage;
+import android.nfc.NdefRecord;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -240,12 +241,6 @@ public final class MainActivity extends FragmentActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
-        if (savedInstanceState != null) {
-
-            return;
-
-        }
-
         if (settings == null) {
 
             Intent intent = getIntent();
@@ -273,6 +268,12 @@ public final class MainActivity extends FragmentActivity implements
                     }
                 }
             }
+        }
+
+        if (savedInstanceState != null) {
+
+            return;
+
         }
 
         FragmentManager fragmentManager = getSupportFragmentManager();
@@ -431,7 +432,37 @@ public final class MainActivity extends FragmentActivity implements
 
                 NdefMessage message = resultData
                         .getParcelableExtra(ForegroundDispatchActivity.EXTRA_RESULT);
-                alert(NdefReaderActivity.decodePayload(message.getRecords()[0]));
+
+                if (message == null) {
+
+                    alert(getString(R.string.null_message));
+
+                } else {
+
+                    NdefRecord[] records = message.getRecords();
+
+                    if ((records == null) || (records.length < 1)) {
+
+                        alert(getString(R.string.empty_message));
+
+                    } else {
+
+                        NdefRecord record = records[0];
+                        String payload = NdefReaderActivity
+                                .decodePayload(record);
+
+                        if (payload == null) {
+
+                            alert(getString(R.string.unparseable_payload));
+
+                        } else {
+
+                            alert(payload);
+
+                        }
+                    }
+                }
+
                 break;
 
             default:

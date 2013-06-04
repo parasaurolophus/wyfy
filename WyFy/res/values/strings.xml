@@ -32,5 +32,8 @@
     <string name="unrecognized_result_code">Unrecognized result code %1$d</string>
     <string name="canceled">Canceled</string>
     <string name="unrecognized_connection_outcome">Unrecognized connection outcome %1$s</string>
+    <string name="null_message">Status ok but message is null</string>
+    <string name="empty_message">Empty message</string>
+    <string name="unparseable_payload">Unparseable payload</string>
 
 </resources>

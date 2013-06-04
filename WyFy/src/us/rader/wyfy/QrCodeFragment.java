@@ -36,8 +36,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.google.zxing.WriterException;
-
 /**
  * {link Fragment} to display the QR code representation of the current WIFI:
  * URI
@@ -50,40 +48,43 @@ public final class QrCodeFragment extends Fragment {
      * Invoke {@link QrCodeFragment#updateQrCode(WifiSettings)} in the UI thread
      * after a short delay in a worker thread.
      * 
-     * <p>
-     * Work around bugs due to the fact that Android doesn't finalize all of its
-     * layout properties until long after it is too late during initial activity
-     * / fragment initialization
-     * </p>
-     * 
-     * <p>
-     * TODO: investigate some way to eliminate this
-     * </p>
-     * 
      * @author Kirk
      */
-    private class LazyUpdateQrCode extends AsyncTask<Void, Void, Void> {
+    private class UpdateQrCodeTask extends
+            AsyncTask<WifiSettings, Void, Bitmap> {
 
         /**
          * Sleep briefly
          * 
          * @param settings
-         *            return <code>settings[0]</code>
+         *            Get QR code image from <code>settings[0]</code>
          * 
-         * @return <code>settings[0]</code>
+         * @return {@link Bitmap} for QR code image
          * 
          * @see android.os.AsyncTask#doInBackground(WifiSettings...)
          */
         @Override
-        protected Void doInBackground(Void... settings) {
+        protected Bitmap doInBackground(WifiSettings... settings) {
 
             try {
 
-                Thread.sleep(1);
+                int size = getQrCodeSize();
 
-            } catch (InterruptedException e) {
+                if (size > 0) {
 
-                // nothing to do here
+                    if (settings[0] == null) {
+
+                        return createBlankBitmap(size);
+
+                    }
+
+                    return settings[0].getQrCode(size);
+
+                }
+
+            } catch (Exception e) {
+
+                Log.e(getClass().getName(), "doInBackground", e); //$NON-NLS-1$
 
             }
 
@@ -92,14 +93,17 @@ public final class QrCodeFragment extends Fragment {
         }
 
         /**
-         * invoke {@link QrCodeFragment#updateQrCode()} in the UI thread
+         * Set the {@link Bitmap} for {@link QrCodeFragment#qrCode}
+         * 
+         * @param bitmap
+         *            the {@link Bitmap}
          * 
          * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
          */
         @Override
-        protected void onPostExecute(Void result) {
+        protected void onPostExecute(Bitmap bitmap) {
 
-            updateQrCode();
+            qrCode.setImageBitmap(bitmap);
 
         }
 
@@ -216,15 +220,15 @@ public final class QrCodeFragment extends Fragment {
     }
 
     /**
-     * display the QR code image
+     * Update the QR code when resuming
      * 
      * @see android.support.v4.app.Fragment#onResume()
      */
     @Override
-    public void onStart() {
+    public void onResume() {
 
-        super.onStart();
-        new LazyUpdateQrCode().execute();
+        super.onResume();
+        new UpdateQrCodeTask().execute(settings);
 
     }
 
@@ -284,7 +288,7 @@ public final class QrCodeFragment extends Fragment {
     public void updateQrCode(WifiSettings settings) {
 
         this.settings = settings;
-        updateQrCode();
+        new UpdateQrCodeTask().execute(settings);
 
     }
 
@@ -317,39 +321,6 @@ public final class QrCodeFragment extends Fragment {
         int size = Math.min(view.getWidth(), view.getHeight());
         return size;
 
-    }
-
-    /**
-     * Update {@link #qrCode} to display the current value of {@link #settings}
-     */
-    private void updateQrCode() {
-
-        int size = getQrCodeSize();
-
-        if (size > 0) {
-
-            try {
-
-                Bitmap bitmap;
-
-                if (settings == null) {
-
-                    bitmap = createBlankBitmap(size);
-
-                } else {
-
-                    bitmap = settings.getQrCode(size);
-
-                }
-
-                qrCode.setImageBitmap(bitmap);
-
-            } catch (WriterException e) {
-
-                Log.e(getClass().getName(), "updateQrCode", e); //$NON-NLS-1$
-
-            }
-        }
     }
 
 }
