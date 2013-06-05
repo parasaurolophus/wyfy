@@ -147,6 +147,23 @@ public abstract class NdefWriterActivity extends NdefReaderActivity {
     }
 
     /**
+     * Create a "T" record with language code "en" and the given
+     * <code>text</code>
+     * 
+     * @param text
+     *            the text string
+     * 
+     * @return "T" {@link NdefRecord}
+     * 
+     * @see #createText(String, String)
+     */
+    public static NdefRecord createText(String text) {
+
+        return createText("en", text); //$NON-NLS-1$
+
+    }
+
+    /**
      * Return a "T" {@link NdefRecord}
      * 
      * @param language

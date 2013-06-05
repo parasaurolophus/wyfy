@@ -32,7 +32,7 @@ import android.util.Log;
  * @author Kirk
  */
 public abstract class NdefReaderActivity extends
-        ForegroundDispatchActivity<NdefMessage> implements WellKnowUriStrings {
+        ForegroundDispatchActivity<NdefMessage> implements NdefRecordConstants {
 
     /**
      * Decode the payload of certain kinds of {@link NdefRecord}
@@ -216,12 +216,12 @@ public abstract class NdefReaderActivity extends
     private static String decodeWellKnown(String type, byte[] payload)
             throws UnsupportedEncodingException {
 
-        if ("T".equals(type)) { //$NON-NLS-1$
+        if (TYPE_TEXT.equals(type)) {
 
             return decodeText(payload);
         }
 
-        if ("U".equals(type)) { //$NON-NLS-1$
+        if (TYPE_URI.equals(type)) {
 
             return decodeUri(payload);
 
