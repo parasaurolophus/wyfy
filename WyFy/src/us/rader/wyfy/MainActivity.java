@@ -68,8 +68,8 @@ public final class MainActivity extends FragmentActivity implements
 
             try {
 
-                return settings
-                        .connect((WifiManager) getSystemService(WIFI_SERVICE));
+                return WifiSettings.getInstance().connect(
+                        (WifiManager) getSystemService(WIFI_SERVICE));
 
             } catch (Exception e) {
 
@@ -92,7 +92,7 @@ public final class MainActivity extends FragmentActivity implements
         @Override
         protected void onPostExecute(WifiSettings.ConnectionOutcome result) {
 
-            String ssid = settings.getSsid();
+            String ssid = WifiSettings.getInstance().getSsid();
 
             switch (result) {
 
@@ -121,9 +121,78 @@ public final class MainActivity extends FragmentActivity implements
 
             if (qrCodeFragment != null) {
 
-                qrCodeFragment.updateQrCode(settings);
+                qrCodeFragment.updateQrCode();
 
             }
+        }
+
+    }
+
+    /**
+     * Invoke {@link WifiSettings#getActiveConnection(WifiManager)} in a worker
+     * thread
+     * 
+     * @author Kirk
+     */
+    private class GetActiveConnectionTask extends
+            AsyncTask<Void, Void, Boolean> {
+
+        /**
+         * Invoke {@link WifiSettings#getActiveConnection(WifiManager)}
+         * 
+         * @param params
+         *            ignored
+         * 
+         * @return result of calling
+         *         {@link WifiSettings#getActiveConnection(WifiManager)}
+         * 
+         * @see android.os.AsyncTask#doInBackground(Void...)
+         */
+        @Override
+        protected Boolean doInBackground(Void... params) {
+
+            try {
+
+                WifiManager manager = (WifiManager) getSystemService(WIFI_SERVICE);
+                return WifiSettings.getInstance().getActiveConnection(manager);
+
+            } catch (Exception e) {
+
+                Log.e(getClass().getName(), "getActiveConnection", e); //$NON-NLS-1$
+                return Boolean.FALSE;
+            }
+
+        }
+
+        /**
+         * Update the QR code if in two-pane mode
+         * 
+         * @param result
+         *            result of calling
+         *            {@link WifiSettings#getActiveConnection(WifiManager)}
+         * 
+         * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
+         */
+        @Override
+        protected void onPostExecute(Boolean result) {
+
+            if (result) {
+
+                alert(getString(R.string.initialized_from_active_connection,
+                        WifiSettings.getInstance().getSsid()));
+
+            } else {
+
+                alert(getString(R.string.no_active_connection));
+
+            }
+
+            if (qrCodeFragment != null) {
+
+                qrCodeFragment.updateQrCode();
+
+            }
+
         }
 
     }
@@ -135,32 +204,13 @@ public final class MainActivity extends FragmentActivity implements
     public static final int REQUEST_WRITE_TAG = 1;
 
     /**
-     * Value used to enable a call to {@link WifiSettings#connect(WifiManager)}
-     * as a side-effect of {@link #onStart()}
-     */
-    private boolean         connectOnStart;
-
-    /**
-     * {@link QrCodeFragment} to notify when the {@link #settings} change
+     * {@link QrCodeFragment} to notify when the wi fi settings model state
+     * changes
      * 
      * Note that this will be <code>null</code> on devices that display only a
      * single pane
      */
     private QrCodeFragment  qrCodeFragment;
-
-    /**
-     * Model
-     */
-    private WifiSettings    settings;
-
-    /**
-     * Initialize {@link #settings} to <code>null</code>
-     */
-    public MainActivity() {
-
-        settings = null;
-
-    }
 
     /**
      * Inflate the options {link Menu}
@@ -212,19 +262,14 @@ public final class MainActivity extends FragmentActivity implements
      * Handle notification that the {@link WifiSettings} model state has been
      * changed by the user
      * 
-     * @param newSettings
-     *            {@link WifiSettings}
-     * 
-     * @see us.rader.wyfy.WifiSettingsFragment.OnWifiSettingsChangedListener#onWifiSettingsChanged(us.rader.wyfy.model.WifiSettings)
+     * @see WifiSettingsFragment.OnWifiSettingsChangedListener#onWifiSettingsChanged()
      */
     @Override
-    public void onWifiSettingsChanged(WifiSettings newSettings) {
-
-        settings = newSettings;
+    public void onWifiSettingsChanged() {
 
         if (qrCodeFragment != null) {
 
-            qrCodeFragment.updateQrCode(settings);
+            qrCodeFragment.updateQrCode();
 
         }
     }
@@ -269,8 +314,8 @@ public final class MainActivity extends FragmentActivity implements
     /**
      * Prepare this instance to be displayed
      * 
-     * Initialize {@link #settings} and attach the {@link Fragment} instances
-     * according to the dynamically loaded layout
+     * Initialize the wi fi settings model and attach the {@link Fragment}
+     * instances according to the dynamically loaded layout
      * 
      * @param savedInstanceState
      *            saved state or <code>null</code>
@@ -281,52 +326,20 @@ public final class MainActivity extends FragmentActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
-        if (settings == null) {
+        setFragments(savedInstanceState);
+
+        if (savedInstanceState == null) {
 
             Intent intent = getIntent();
 
             if (intent != null) {
 
-                Uri uri = intent.getData();
+                if (!parseIntentData(intent)) {
 
-                if (uri != null) {
+                    getActiveConnection();
 
-                    initialize(uri.toString());
-
-                } else {
-
-                    Parcelable[] ndefMessages = intent
-                            .getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
-
-                    if ((ndefMessages != null) && (ndefMessages.length > 0)) {
-
-                        initialize((NdefMessage) ndefMessages[0]);
-
-                    }
                 }
             }
-        }
-
-        setFragments(savedInstanceState);
-
-    }
-
-    /**
-     * Call {@link WifiSettings#connect(WifiManager)} if {@link #settings} is
-     * not <code>null</code>
-     * 
-     * @see android.support.v4.app.FragmentActivity#onResume()
-     */
-    @Override
-    protected void onStart() {
-
-        super.onStart();
-
-        if (connectOnStart) {
-
-            new ConnectTask().execute();
-            connectOnStart = false;
-
         }
     }
 
@@ -358,67 +371,13 @@ public final class MainActivity extends FragmentActivity implements
     }
 
     /**
-     * Initialize from a legacy {@link NdefMessage}
-     * 
-     * Provide backward compatibility for tags written with older versions of
-     * this app
-     * 
-     * @param ndefMessage
-     *            legacy {@link NdefMessage}
+     * Initialize the wi fi settings model based on the currently active
+     * connection, if any
      */
-    private void initialize(NdefMessage ndefMessage) {
+    private void getActiveConnection() {
 
-        try {
-            NdefRecord[] records = ndefMessage.getRecords();
-            if (records.length > 0) {
+        new GetActiveConnectionTask().execute();
 
-                NdefRecord record = records[0];
-
-                if (record.getTnf() != NdefRecord.TNF_MIME_MEDIA) {
-
-                    return;
-
-                }
-
-                String type = new String(record.getType(), "US-ASCII"); //$NON-NLS-1$
-
-                if ("application/x-wyfy".equals(type)) { //$NON-NLS-1$
-
-                    String payload = new String(record.getPayload(), "US-ASCII"); //$NON-NLS-1$
-                    initialize(payload);
-
-                }
-            }
-
-        } catch (Exception e) {
-
-            Log.e(getClass().getName(), "initializeNdefMessage", e); //$NON-NLS-1$
-
-        }
-    }
-
-    /**
-     * Initialize {@link #settings} from the given WIFI: {@link Uri}
-     * 
-     * @param uri
-     *            WIFI: {@link Uri}
-     */
-    private void initialize(String uri) {
-        try {
-
-            settings = WifiSettings.parse(uri);
-
-            if (settings != null) {
-
-                connectOnStart = true;
-
-            }
-
-        } catch (Exception e) {
-
-            Log.e(getClass().getName(), "error parsing URI", e); //$NON-NLS-1$
-
-        }
     }
 
     /**
@@ -485,6 +444,115 @@ public final class MainActivity extends FragmentActivity implements
     }
 
     /**
+     * Parse the data passed in the given {@link Intent} at launch
+     * 
+     * @param intent
+     *            the {@link Intent}
+     * 
+     * @return <code>true</code> if and only if an asynchronouse attempt to
+     *         connect was launched
+     */
+    private boolean parseIntentData(Intent intent) {
+        Uri uri = intent.getData();
+
+        if (uri != null) {
+
+            return parseUri(uri.toString());
+
+        }
+
+        Parcelable[] ndefMessages = intent
+                .getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
+
+        if ((ndefMessages != null) && (ndefMessages.length > 0)) {
+
+            return parseLegacyMessage((NdefMessage) ndefMessages[0]);
+
+        }
+
+        return false;
+
+    }
+
+    /**
+     * Initialize from a legacy {@link NdefMessage}
+     * 
+     * Provide backward compatibility for tags written with older versions of
+     * this app
+     * 
+     * @param ndefMessage
+     *            legacy {@link NdefMessage}
+     * 
+     * @return <code>true</code> if and only if an asynchronouse attempt to
+     *         connect was launched
+     */
+    private boolean parseLegacyMessage(NdefMessage ndefMessage) {
+
+        try {
+
+            NdefRecord[] records = ndefMessage.getRecords();
+
+            if (records.length > 0) {
+
+                NdefRecord record = records[0];
+
+                if (record.getTnf() != NdefRecord.TNF_MIME_MEDIA) {
+
+                    return false;
+
+                }
+
+                String type = new String(record.getType(), "US-ASCII"); //$NON-NLS-1$
+
+                if ("application/x-wyfy".equals(type)) { //$NON-NLS-1$
+
+                    String payload = new String(record.getPayload(), "US-ASCII"); //$NON-NLS-1$
+                    return parseUri(payload);
+
+                }
+            }
+
+        } catch (Exception e) {
+
+            Log.e(getClass().getName(), "initializeNdefMessage", e); //$NON-NLS-1$
+
+        }
+
+        return false;
+
+    }
+
+    /**
+     * Initialize wi fi model state from the given WIFI: {@link Uri}
+     * 
+     * @param uri
+     *            WIFI: {@link Uri}
+     * 
+     * @return <code>true</code> if and only if an asynchronous attempt to
+     *         connect was launched
+     */
+    private boolean parseUri(String uri) {
+
+        try {
+
+            if (WifiSettings.getInstance().parse(uri)) {
+
+                new ConnectTask().execute();
+                return true;
+
+            }
+
+        } catch (Exception e) {
+
+            Log.e(getClass().getName(), "error parsing URI", e); //$NON-NLS-1$
+
+        }
+
+        return false;
+
+    }
+
+    /**
      * Initialize the UI {@link Fragment} instances according to the current
      * screen layout
      * 
@@ -522,9 +590,8 @@ public final class MainActivity extends FragmentActivity implements
 
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
-        transaction.replace(R.id.left_fragment,
-                WifiSettingsFragment.newInstance(settings));
-        qrCodeFragment = QrCodeFragment.newInstance(settings);
+        transaction.replace(R.id.left_fragment, new WifiSettingsFragment());
+        qrCodeFragment = new QrCodeFragment();
         transaction.replace(R.id.right_fragment, qrCodeFragment);
         transaction.commit();
 
@@ -537,9 +604,8 @@ public final class MainActivity extends FragmentActivity implements
 
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
-        transaction.replace(R.id.top_fragment,
-                WifiSettingsFragment.newInstance(settings));
-        qrCodeFragment = QrCodeFragment.newInstance(settings);
+        transaction.replace(R.id.top_fragment, new WifiSettingsFragment());
+        qrCodeFragment = new QrCodeFragment();
         transaction.replace(R.id.bottom_fragment, qrCodeFragment);
         transaction.commit();
 
@@ -552,8 +618,7 @@ public final class MainActivity extends FragmentActivity implements
 
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
-        transaction.replace(R.id.single_fragment,
-                WifiSettingsFragment.newInstance(settings));
+        transaction.replace(R.id.single_fragment, new WifiSettingsFragment());
         qrCodeFragment = null;
         transaction.commit();
 
@@ -571,8 +636,7 @@ public final class MainActivity extends FragmentActivity implements
 
             FragmentManager manager = getSupportFragmentManager();
             FragmentTransaction transaction = manager.beginTransaction();
-            transaction.replace(R.id.single_fragment,
-                    QrCodeFragment.newInstance(settings));
+            transaction.replace(R.id.single_fragment, new QrCodeFragment());
             transaction.addToBackStack(null);
             transaction.commit();
 
@@ -591,7 +655,7 @@ public final class MainActivity extends FragmentActivity implements
     private boolean writeTag() {
 
         Intent intent = new Intent(this, WriteTagActivity.class);
-        Uri uri = Uri.parse(settings.toString());
+        Uri uri = Uri.parse(WifiSettings.getInstance().toString());
         intent.setData(uri);
         startActivityForResult(intent, REQUEST_WRITE_TAG);
         return true;

@@ -18,9 +18,6 @@ package us.rader.wyfy;
 import us.rader.wyfy.model.WifiSettings;
 import us.rader.wyfy.model.WifiSettings.Security;
 import android.app.Activity;
-import android.content.Context;
-import android.net.wifi.WifiManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
@@ -55,131 +52,51 @@ public final class WifiSettingsFragment extends Fragment implements
         /**
          * Notify listener that the user modified the values of the wifi
          * settings UI
-         * 
-         * @param settings
-         *            {@link WifiSettings}
          */
-        void onWifiSettingsChanged(WifiSettings settings);
+        void onWifiSettingsChanged();
 
     }
 
     /**
-     * Use a worker thread initialize {@link WifiSettingsFragment#settings}
-     * 
-     * @author Kirk
+     * Turn {@link #notifyListener()} into a no-op while
+     * {@link #delayNotifications} is greater than 0
      */
-    private class GetActiveSettingsTask extends
-            AsyncTask<Void, Void, WifiSettings> {
-
-        /**
-         * Invoke {@link WifiManager} API in a worker thread
-         * 
-         * @param params
-         *            ignored
-         * 
-         * @return {@link WifiSettings} initialized accordng to the current
-         *         active connection or <code>null</code>
-         * 
-         * @see android.os.AsyncTask#doInBackground(Void...)
-         */
-        @Override
-        protected WifiSettings doInBackground(Void... params) {
-
-            try {
-
-                WifiManager manager = (WifiManager) getActivity()
-                        .getSystemService(Context.WIFI_SERVICE);
-                return WifiSettings.getActive(manager);
-
-            } catch (Exception e) {
-
-                Log.e(getClass().getName(), "doInBackground", e); //$NON-NLS-1$
-                return null;
-
-            }
-        }
-
-        /**
-         * Update the UI to match settings values obtained using the
-         * {@link WifiManager} API in a worker thread
-         * 
-         * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
-         */
-        @Override
-        protected void onPostExecute(WifiSettings result) {
-
-            if (result == null) {
-
-                updateWidgets(new WifiSettings());
-
-            } else {
-
-                updateWidgets(result);
-
-            }
-        }
-
-    }
-
-    /**
-     * Arguments bundle key for the {@link WifiSettings} parameter
-     */
-    private static final String WIFI_SETTINGS = "WIFI_SETTINGS"; //$NON-NLS-1$
-
-    /**
-     * Create a new instance of {@link WifiSettingsFragment}
-     * 
-     * @param settings
-     *            {@link WifiSettings}
-     * 
-     * @return {@link WifiSettingsFragment}
-     */
-    public static WifiSettingsFragment newInstance(WifiSettings settings) {
-
-        WifiSettingsFragment fragment = new WifiSettingsFragment();
-        Bundle arguments = new Bundle();
-
-        if (settings != null) {
-
-            arguments.putSerializable(WIFI_SETTINGS, settings);
-
-        }
-
-        fragment.setArguments(arguments);
-        return fragment;
-
-    }
+    private int                           delayNotifications;
 
     /**
      * {@link CheckBox} for a wifi access point with a SSID that isn't broadcast
      */
-    CheckBox                              hiddenCheckBox;
+    private CheckBox                      hiddenCheckBox;
 
     /**
-     * {@link EditText} for a wifi access point password string or WEP key
-     */
-    EditText                              passwordText;
-
-    /**
-     * {@link RadioGroup} to select a wifi access point's security protocol
-     */
-    RadioGroup                            securityGroup;
-
-    /**
-     * {@link EditText} for a wifi access point SSID string
-     */
-    EditText                              ssidText;
-
-    /**
-     * The {@link OnWifiSettingsChangedListener} to notify of changes to
-     * {@link #settings}
+     * The {@link OnWifiSettingsChangedListener} to notify of changes to wi fi
+     * settings
      */
     private OnWifiSettingsChangedListener listener;
 
     /**
-     * Model
+     * {@link EditText} for a wifi access point password string or WEP key
      */
-    private WifiSettings                  settings;
+    private EditText                      passwordText;
+
+    /**
+     * {@link RadioGroup} to select a wifi access point's security protocol
+     */
+    private RadioGroup                    securityGroup;
+
+    /**
+     * {@link EditText} for a wifi access point SSID string
+     */
+    private EditText                      ssidText;
+
+    /**
+     * Initialize {@link #delayNotifications}
+     */
+    public WifiSettingsFragment() {
+
+        delayNotifications = 0;
+
+    }
 
     /**
      * Notify {@link #listener} that SSID or password has been edited by the
@@ -193,15 +110,10 @@ public final class WifiSettingsFragment extends Fragment implements
     @Override
     public void afterTextChanged(Editable editable) {
 
-        if (settings == null) {
-
-            return;
-
-        }
-
+        WifiSettings settings = WifiSettings.getInstance();
         settings.setSsid(ssidText.getText().toString());
         settings.setPassword(passwordText.getText().toString());
-        notifyListener(settings);
+        notifyListener();
 
     }
 
@@ -262,18 +174,12 @@ public final class WifiSettingsFragment extends Fragment implements
     @Override
     public void onCheckedChanged(CompoundButton button, boolean checked) {
 
-        if (settings == null) {
-
-            return;
-
-        }
-
         switch (button.getId()) {
 
             case R.id.hidden_checkbox:
 
-                settings.setHidden(checked);
-                notifyListener(settings);
+                WifiSettings.getInstance().setHidden(checked);
+                notifyListener();
                 break;
 
             default:
@@ -299,11 +205,7 @@ public final class WifiSettingsFragment extends Fragment implements
     @Override
     public void onCheckedChanged(RadioGroup group, int id) {
 
-        if (settings == null) {
-
-            return;
-
-        }
+        WifiSettings settings = WifiSettings.getInstance();
 
         switch (id) {
 
@@ -324,30 +226,7 @@ public final class WifiSettingsFragment extends Fragment implements
 
         }
 
-        notifyListener(settings);
-
-    }
-
-    /**
-     * Prepare this instance to be displayed
-     * 
-     * @param savedInstanceState
-     *            saved state or <code>null</code>
-     * 
-     * @see android.support.v4.app.Fragment#onCreate(android.os.Bundle)
-     */
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-
-        super.onCreate(savedInstanceState);
-        settings = null;
-        Bundle arguments = getArguments();
-
-        if (arguments != null) {
-
-            settings = (WifiSettings) arguments.getSerializable(WIFI_SETTINGS);
-
-        }
+        notifyListener();
 
     }
 
@@ -370,25 +249,30 @@ public final class WifiSettingsFragment extends Fragment implements
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.wifi_settings_fragment,
-                container, false);
-        ssidText = (EditText) view.findViewById(R.id.ssid_text);
-        passwordText = (EditText) view.findViewById(R.id.password_text);
-        securityGroup = (RadioGroup) view.findViewById(R.id.security_group);
-        hiddenCheckBox = (CheckBox) view.findViewById(R.id.hidden_checkbox);
+        // don't notify during initialization of UI...
+        delayNotifications += 1;
 
-        if (settings != null) {
+        try {
 
-            updateWidgets(settings);
+            View view = inflater.inflate(R.layout.wifi_settings_fragment,
+                    container, false);
+            ssidText = (EditText) view.findViewById(R.id.ssid_text);
+            passwordText = (EditText) view.findViewById(R.id.password_text);
+            securityGroup = (RadioGroup) view.findViewById(R.id.security_group);
+            hiddenCheckBox = (CheckBox) view.findViewById(R.id.hidden_checkbox);
+            updateSettings();
+            ssidText.addTextChangedListener(this);
+            passwordText.addTextChangedListener(this);
+            securityGroup.setOnCheckedChangeListener(this);
+            hiddenCheckBox.setOnCheckedChangeListener(this);
+            return view;
+
+        } finally {
+
+            // now that things are set up, enable notifications...
+            delayNotifications -= 1;
 
         }
-
-        ssidText.addTextChangedListener(this);
-        passwordText.addTextChangedListener(this);
-        securityGroup.setOnCheckedChangeListener(this);
-        hiddenCheckBox.setOnCheckedChangeListener(this);
-        return view;
-
     }
 
     /**
@@ -402,23 +286,6 @@ public final class WifiSettingsFragment extends Fragment implements
         super.onDetach();
         this.listener = null;
 
-    }
-
-    /**
-     * Show this instance
-     * 
-     * @see android.support.v4.app.Fragment#onResume()
-     */
-    @Override
-    public void onResume() {
-
-        super.onResume();
-
-        if (settings == null) {
-
-            new GetActiveSettingsTask().execute();
-
-        }
     }
 
     /**
@@ -446,51 +313,68 @@ public final class WifiSettingsFragment extends Fragment implements
     }
 
     /**
-     * Update the state of the UI widgets to match the current state of
-     * {@link #settings}
-     * 
-     * @param settings
-     *            {@link WifiSettings}
+     * Update the state of the UI widgets to match the current wi fi settings
+     * model state
      */
-    public void updateWidgets(WifiSettings settings) {
+    public void updateSettings() {
 
-        this.settings = settings;
-        ssidText.setText(settings.getSsid());
-        passwordText.setText(settings.getPassword());
-        hiddenCheckBox.setChecked(settings.isHidden());
+        WifiSettings settings = WifiSettings.getInstance();
 
-        switch (settings.getSecurity()) {
+        // don't queue up a bunch of notifications while updating multiple
+        // widgets...
+        delayNotifications += 1;
 
-            case WEP:
+        try {
 
-                securityGroup.check(R.id.wep_radio);
-                break;
+            ssidText.setText(settings.getSsid());
+            passwordText.setText(settings.getPassword());
+            hiddenCheckBox.setChecked(settings.isHidden());
 
-            case WPA:
+            switch (settings.getSecurity()) {
 
-                securityGroup.check(R.id.wpa_radio);
-                break;
+                case WEP:
 
-            default:
+                    securityGroup.check(R.id.wep_radio);
+                    break;
 
-                securityGroup.check(R.id.nopass_radio);
-                break;
+                case WPA:
+
+                    securityGroup.check(R.id.wpa_radio);
+                    break;
+
+                default:
+
+                    securityGroup.check(R.id.nopass_radio);
+                    break;
+
+            }
+
+        } finally {
+
+            // notify at most once for all of the preceding updates...
+            delayNotifications -= 1;
+            notifyListener();
 
         }
     }
 
     /**
-     * Notify {@link #listener} that the state of {@link #settings} has been
-     * changed by the user
-     * 
-     * @param settings
-     *            {@link WifiSettings}
+     * Notify {@link #listener} that the wi fi settings habe been changed by the
+     * user
      */
-    private void notifyListener(WifiSettings settings) {
+    private void notifyListener() {
 
-        if ((listener != null) && (settings != null)) {
+        try {
 
-            listener.onWifiSettingsChanged(settings);
+            if ((delayNotifications == 0) && (listener != null)) {
+
+                listener.onWifiSettingsChanged();
+
+            }
+
+        } catch (Exception e) {
+
+            Log.e(getClass().getName(), "notifyListener", e); //$NON-NLS-1$
 
         }
     }

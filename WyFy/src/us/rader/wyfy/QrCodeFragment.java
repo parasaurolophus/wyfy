@@ -17,8 +17,6 @@ package us.rader.wyfy;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import us.rader.wyfy.model.WifiSettings;
 import us.rader.wyfy.provider.FileProvider;
@@ -52,30 +50,23 @@ public final class QrCodeFragment extends Fragment {
      * 
      * @author Kirk
      */
-    private class UpdateQrCodeTask extends
-            AsyncTask<WifiSettings, Void, Bitmap> {
+    private class UpdateQrCodeTask extends AsyncTask<Void, Void, Bitmap> {
 
         /**
          * Return the {@link Bitmap} for the QR code image representing
          * <code>settings[0]</code>
          * 
-         * TODO: this will return <code>null</code> when invoked before the UI
-         * is actually ready to be rendered, which happens in
-         * {@link QrCodeFragment#onResume()} in single-pane mode; investigate
-         * ways to eliminate the resulting kludgery in
-         * {@link #onPostExecute(Bitmap)}
+         * @param params
+         *            ignored
          * 
-         * @param settings
-         *            Get QR code image from <code>settings[0]</code>
+         * @return {@link Bitmap} for QR code image or <code>null</code>
          * 
-         * @return {@link Bitmap} for QR code image
-         * 
-         * @see android.os.AsyncTask#doInBackground(WifiSettings...)
+         * @see android.os.AsyncTask#doInBackground(Void...)
          * @see WifiSettings#getQrCode(int)
          * @see #onPostExecute(Bitmap)
          */
         @Override
-        protected Bitmap doInBackground(WifiSettings... settings) {
+        protected Bitmap doInBackground(Void... params) {
 
             try {
 
@@ -83,13 +74,7 @@ public final class QrCodeFragment extends Fragment {
 
                 if (size > 0) {
 
-                    if (settings[0] == null) {
-
-                        return createBlankBitmap(size);
-
-                    }
-
-                    return settings[0].getQrCode(size);
+                    return WifiSettings.getInstance().getQrCode(size);
 
                 }
 
@@ -110,31 +95,12 @@ public final class QrCodeFragment extends Fragment {
          *            the {@link Bitmap}
          * 
          * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
-         * @see #doInBackground(WifiSettings...)
+         * @see #doInBackground(Void...)
          */
         @Override
         protected void onPostExecute(Bitmap bitmap) {
 
-            if (bitmap == null) {
-
-                // TODO: eliminate this kludge to force another refresh after
-                // giving the UI time to settle down
-                Timer timer = new Timer();
-
-                TimerTask timerTask = new TimerTask() {
-
-                    @Override
-                    public void run() {
-
-                        new UpdateQrCodeTask().execute(settings);
-
-                    }
-
-                };
-
-                timer.schedule(timerTask, 500);
-
-            } else {
+            if (bitmap != null) {
 
                 qrCode.setImageBitmap(bitmap);
 
@@ -144,73 +110,9 @@ public final class QrCodeFragment extends Fragment {
     }
 
     /**
-     * {@link Bundle} key for {@link WifiSettings} argument
-     */
-    private static final String WIFI_SETTINGS = "WIFI_SETTINGS"; //$NON-NLS-1$
-
-    /**
-     * Factory method for instances of this class
-     * 
-     * @param settings
-     *            {@link WifiSettings}
-     * 
-     * @return {@link QrCodeFragment}
-     */
-    public static QrCodeFragment newInstance(WifiSettings settings) {
-
-        QrCodeFragment fragment = new QrCodeFragment();
-        Bundle arguments = new Bundle();
-
-        if (settings != null) {
-
-            arguments.putSerializable(WIFI_SETTINGS, settings);
-
-        }
-
-        fragment.setArguments(arguments);
-        return fragment;
-
-    }
-
-    /**
      * QR code image
      */
-    private ImageView    qrCode;
-
-    /**
-     * Model
-     */
-    private WifiSettings settings;
-
-    /**
-     * Initialize {@link #settings} to <code>null</code>
-     */
-    public QrCodeFragment() {
-
-        settings = null;
-
-    }
-
-    /**
-     * Process arguments
-     * 
-     * @param savedInstanceState
-     *            saved state or <code>null</code>
-     * 
-     * @see android.support.v4.app.Fragment#onCreate(android.os.Bundle)
-     */
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-
-        super.onCreate(savedInstanceState);
-        Bundle arguments = getArguments();
-
-        if (arguments != null) {
-
-            settings = (WifiSettings) arguments.getSerializable(WIFI_SETTINGS);
-
-        }
-    }
+    private ImageView qrCode;
 
     /**
      * Inflate the {@Link View}
@@ -254,21 +156,8 @@ public final class QrCodeFragment extends Fragment {
     }
 
     /**
-     * Update the QR code when resuming
-     * 
-     * @see android.support.v4.app.Fragment#onResume()
-     */
-    @Override
-    public void onResume() {
-
-        super.onResume();
-        new UpdateQrCodeTask().execute(settings);
-
-    }
-
-    /**
-     * Save {@link #settings} QR code to a file and then send a sharing
-     * {@link Intent} wrapped in a chooser
+     * Save QR code to a file and then send a sharing {@link Intent} wrapped in
+     * a chooser
      * 
      * @see Intent#ACTION_SEND
      * @see Intent#createChooser(Intent, CharSequence)
@@ -279,7 +168,8 @@ public final class QrCodeFragment extends Fragment {
         try {
 
             FragmentActivity activity = getActivity();
-            Bitmap bitmap = settings.getQrCode(getQrCodeSize());
+            Bitmap bitmap = WifiSettings.getInstance().getQrCode(
+                    getQrCodeSize());
             File file = activity.getFileStreamPath("wyfy_qr.png"); //$NON-NLS-1$
             FileOutputStream stream = activity
                     .openFileOutput(file.getName(), 0);
@@ -315,32 +205,10 @@ public final class QrCodeFragment extends Fragment {
 
     /**
      * Update the QR code to match the specified state
-     * 
-     * @param settings
-     *            {@link WifiSettings}
      */
-    public void updateQrCode(WifiSettings settings) {
+    public void updateQrCode() {
 
-        this.settings = settings;
-        new UpdateQrCodeTask().execute(settings);
-
-    }
-
-    /**
-     * Return a square {@link Bitmap} of the given size filled with
-     * {@link Color#WHITE}
-     * 
-     * @param size
-     *            the width and height of the {@link Bitmap}
-     * 
-     * @return the {@link Bitmap}
-     */
-    private Bitmap createBlankBitmap(int size) {
-
-        Bitmap bitmap;
-        bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
-        bitmap.eraseColor(Color.WHITE);
-        return bitmap;
+        new UpdateQrCodeTask().execute();
 
     }
 

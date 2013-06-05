@@ -32,5 +32,7 @@
     <string name="null_message">Status OK but message is null</string>
     <string name="empty_message">Empty message</string>
     <string name="unparseable_payload">Unparseable payload</string>
+    <string name="initialized_from_active_connection">Initialized from active connection to %1%s</string>
+    <string name="no_active_connection">No active connection</string>
 
 </resources>
