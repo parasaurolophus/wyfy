@@ -198,11 +198,11 @@ public abstract class NdefWriterActivity extends NdefReaderActivity {
             String suffix = uri;
             int code = 0;
 
-            for (int index = 1; index < URI_PREFIXES.length; ++index) {
+            for (int index = 1; index < WELL_KNOWN_URI_PREFIX.length; ++index) {
 
-                if (uri.startsWith(URI_PREFIXES[index])) {
+                if (uri.startsWith(WELL_KNOWN_URI_PREFIX[index])) {
 
-                    prefix = URI_PREFIXES[index];
+                    prefix = WELL_KNOWN_URI_PREFIX[index];
                     suffix = uri.substring(prefix.length());
                     code = index;
                     break;

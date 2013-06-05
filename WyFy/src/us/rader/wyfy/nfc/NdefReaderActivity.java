@@ -32,39 +32,7 @@ import android.util.Log;
  * @author Kirk
  */
 public abstract class NdefReaderActivity extends
-        ForegroundDispatchActivity<NdefMessage> {
-
-    /**
-     * Prefixes for "U" record URI's
-     * 
-     * <p>
-     * Note that both the number and order of entries here is signficant!
-     * </p>
-     * 
-     * <p>
-     * TODO: copy the complete list of prefixes to this implementation
-     * </p>
-     */
-    protected static final String[] URI_PREFIXES = { "", //$NON-NLS-1$
-
-            // 1
-            "http://www.", //$NON-NLS-1$
-
-            // 2
-            "https://www.", //$NON-NLS-1$
-
-            // 3
-            "http://", //$NON-NLS-1$
-
-            // 4
-            "https://", //$NON-NLS-1$
-
-            // 5
-            "tel:", //$NON-NLS-1$
-
-            // 6
-            "mailto:" //$NON-NLS-1$
-                                                 };
+        ForegroundDispatchActivity<NdefMessage> implements WellKnowUriStrings {
 
     /**
      * Decode the payload of certain kinds of {@link NdefRecord}
@@ -127,10 +95,6 @@ public abstract class NdefReaderActivity extends
      * "text/"
      * </p>
      * 
-     * <p>
-     * TODO: what about things like "application/json" etc.?
-     * </p>
-     * 
      * @param type
      *            the MIME type
      * 
@@ -144,6 +108,16 @@ public abstract class NdefReaderActivity extends
      */
     private static String decodeMime(String type, byte[] payload)
             throws UnsupportedEncodingException {
+
+        if (type.equalsIgnoreCase("application/xml")) { //$NON-NLS-1$
+
+            return new String(payload, "UTF-8"); //$NON-NLS-1$
+        }
+
+        if (type.equalsIgnoreCase("application/json")) { //$NON-NLS-1$
+
+            return new String(payload, "UTF-8"); //$NON-NLS-1$
+        }
 
         if (type.toLowerCase(Locale.US).startsWith("text/")) { //$NON-NLS-1$
 
@@ -161,10 +135,6 @@ public abstract class NdefReaderActivity extends
      * <p>
      * This parses and discards any language-code prefix in the
      * <code>payload</code>
-     * </p>
-     * 
-     * <p>
-     * TODO: verify the language code length / encoding field format
      * </p>
      * 
      * @param payload
@@ -217,9 +187,9 @@ public abstract class NdefReaderActivity extends
         String suffix = new String(payload, 1, payload.length - 1, "US-ASCII"); //$NON-NLS-1$
         String prefix = ""; //$NON-NLS-1$
 
-        if ((code > 0) && (code < URI_PREFIXES.length)) {
+        if ((code > 0) && (code < WELL_KNOWN_URI_PREFIX.length)) {
 
-            prefix = URI_PREFIXES[code];
+            prefix = WELL_KNOWN_URI_PREFIX[code];
 
         }
 
