@@ -198,7 +198,8 @@ public final class MainActivity extends FragmentActivity implements
 
             case R.id.share_qr_item:
 
-                return shareQrCode();
+                shareQrCode();
+                return true;
 
             default:
 
@@ -306,32 +307,7 @@ public final class MainActivity extends FragmentActivity implements
             }
         }
 
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
-
-        if (findViewById(R.id.single_fragment) != null) {
-
-            transaction.add(R.id.single_fragment,
-                    WifiSettingsFragment.newInstance(settings));
-            qrCodeFragment = null;
-
-        } else if (findViewById(R.id.two_fragments_vertical) != null) {
-
-            transaction.add(R.id.top_fragment,
-                    WifiSettingsFragment.newInstance(settings));
-            qrCodeFragment = QrCodeFragment.newInstance(settings);
-            transaction.add(R.id.bottom_fragment, qrCodeFragment);
-
-        } else {
-
-            transaction.add(R.id.left_fragment,
-                    WifiSettingsFragment.newInstance(settings));
-            qrCodeFragment = QrCodeFragment.newInstance(settings);
-            transaction.add(R.id.right_fragment, qrCodeFragment);
-
-        }
-
-        transaction.commit();
+        setFragments(savedInstanceState);
 
     }
 
@@ -509,14 +485,87 @@ public final class MainActivity extends FragmentActivity implements
     }
 
     /**
+     * Initialize the UI {@link Fragment} instances according to the current
+     * screen layout
+     * 
+     * @param savedInstanceState
+     *            saved state or <code>null</code>
+     */
+    private void setFragments(Bundle savedInstanceState) {
+
+        if (findViewById(R.id.single_fragment) != null) {
+
+            if (savedInstanceState != null) {
+
+                return;
+
+            }
+
+            setSinglePane();
+
+        } else if (findViewById(R.id.two_fragments_vertical) != null) {
+
+            setPortrait();
+
+        } else {
+
+            setLandscape();
+
+        }
+
+    }
+
+    /**
+     * Initialize the two-pane landscape layout
+     */
+    private void setLandscape() {
+
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.replace(R.id.left_fragment,
+                WifiSettingsFragment.newInstance(settings));
+        qrCodeFragment = QrCodeFragment.newInstance(settings);
+        transaction.replace(R.id.right_fragment, qrCodeFragment);
+        transaction.commit();
+
+    }
+
+    /**
+     * Initialize the two-pane portrait layout
+     */
+    private void setPortrait() {
+
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.replace(R.id.top_fragment,
+                WifiSettingsFragment.newInstance(settings));
+        qrCodeFragment = QrCodeFragment.newInstance(settings);
+        transaction.replace(R.id.bottom_fragment, qrCodeFragment);
+        transaction.commit();
+
+    }
+
+    /**
+     * Initialize the single-pane layout
+     */
+    private void setSinglePane() {
+
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.replace(R.id.single_fragment,
+                WifiSettingsFragment.newInstance(settings));
+        qrCodeFragment = null;
+        transaction.commit();
+
+    }
+
+    /**
      * Handle "Share QR..." menu item
      * 
      * This shows {@link QrCodeFragment} in single-pane mode, or invokes
      * {@link QrCodeFragment#shareQrCode()} in two-pane mode
-     * 
-     * @return <code>true</code>
      */
-    private boolean shareQrCode() {
+    private void shareQrCode() {
 
         if (qrCodeFragment == null) {
 
@@ -532,9 +581,6 @@ public final class MainActivity extends FragmentActivity implements
             qrCodeFragment.shareQrCode();
 
         }
-
-        return true;
-
     }
 
     /**
