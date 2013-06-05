@@ -38,8 +38,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.google.zxing.WriterException;
-
 /**
  * {link Fragment} to display the QR code representation of the current WIFI:
  * URI
@@ -95,7 +93,7 @@ public final class QrCodeFragment extends Fragment {
 
                 }
 
-            } catch (WriterException e) {
+            } catch (Exception e) {
 
                 Log.e(getClass().getName(), "doInBackground", e); //$NON-NLS-1$
 
@@ -353,8 +351,23 @@ public final class QrCodeFragment extends Fragment {
      */
     private int getQrCodeSize() {
 
-        View view = getView().findViewById(R.id.qr_code_layout);
-        int size = Math.min(view.getWidth(), view.getHeight());
+        View view = getView();
+
+        if (view == null) {
+
+            return 0;
+
+        }
+
+        View qrView = view.findViewById(R.id.qr_code_layout);
+
+        if (qrView == null) {
+
+            return 0;
+
+        }
+
+        int size = Math.min(qrView.getWidth(), qrView.getHeight());
         return size;
 
     }

@@ -229,6 +229,43 @@ public final class MainActivity extends FragmentActivity implements
     }
 
     /**
+     * Handle the response from another activity started by this one for its
+     * result
+     * 
+     * @param requestCode
+     *            the request code to which this is the response
+     * 
+     * @param resultCode
+     *            the result code for the response
+     * 
+     * @param resultData
+     *            the result data from the response
+     * 
+     * @see android.support.v4.app.FragmentActivity#onActivityResult(int, int,
+     *      android.content.Intent)
+     */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode,
+            Intent resultData) {
+
+        super.onActivityResult(requestCode, resultCode, resultData);
+
+        switch (requestCode) {
+
+            case REQUEST_WRITE_TAG:
+
+                onTagWritten(resultCode, resultData);
+                break;
+
+            default:
+
+                alert(getString(R.string.unrecognized_request));
+                break;
+
+        }
+    }
+
+    /**
      * Prepare this instance to be displayed
      * 
      * Initialize {@link #settings} and attach the {@link Fragment} instances
@@ -269,12 +306,6 @@ public final class MainActivity extends FragmentActivity implements
             }
         }
 
-        if (savedInstanceState != null) {
-
-            return;
-
-        }
-
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
 
@@ -284,16 +315,69 @@ public final class MainActivity extends FragmentActivity implements
                     WifiSettingsFragment.newInstance(settings));
             qrCodeFragment = null;
 
-        } else {
+        } else if (findViewById(R.id.two_fragments_vertical) != null) {
 
-            transaction.add(R.id.first_fragment,
+            transaction.add(R.id.top_fragment,
                     WifiSettingsFragment.newInstance(settings));
             qrCodeFragment = QrCodeFragment.newInstance(settings);
-            transaction.add(R.id.second_fragment, qrCodeFragment);
+            transaction.add(R.id.bottom_fragment, qrCodeFragment);
+
+        } else {
+
+            transaction.add(R.id.left_fragment,
+                    WifiSettingsFragment.newInstance(settings));
+            qrCodeFragment = QrCodeFragment.newInstance(settings);
+            transaction.add(R.id.right_fragment, qrCodeFragment);
 
         }
 
         transaction.commit();
+
+    }
+
+    /**
+     * Call {@link WifiSettings#connect(WifiManager)} if {@link #settings} is
+     * not <code>null</code>
+     * 
+     * @see android.support.v4.app.FragmentActivity#onResume()
+     */
+    @Override
+    protected void onStart() {
+
+        super.onStart();
+
+        if (connectOnStart) {
+
+            new ConnectTask().execute();
+            connectOnStart = false;
+
+        }
+    }
+
+    /**
+     * Display <code>message</code> to the user
+     * 
+     * @param message
+     *            the message text
+     */
+    private void alert(String message) {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(message);
+
+        builder.setNeutralButton(android.R.string.ok,
+                new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        dialog.dismiss();
+
+                    }
+
+                });
+
+        builder.show();
 
     }
 
@@ -362,118 +446,6 @@ public final class MainActivity extends FragmentActivity implements
     }
 
     /**
-     * Call {@link WifiSettings#connect(WifiManager)} if {@link #settings} is
-     * not <code>null</code>
-     * 
-     * @see android.support.v4.app.FragmentActivity#onResume()
-     */
-    @Override
-    protected void onStart() {
-
-        super.onStart();
-
-        if (connectOnStart) {
-
-            new ConnectTask().execute();
-            connectOnStart = false;
-
-        }
-    }
-
-    /**
-     * Display <code>message</code> to the user
-     * 
-     * @param message
-     *            the message text
-     */
-    private void alert(String message) {
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage(message);
-
-        builder.setNeutralButton(android.R.string.ok,
-                new DialogInterface.OnClickListener() {
-
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-
-                        dialog.dismiss();
-
-                    }
-
-                });
-
-        builder.show();
-
-    }
-
-    /**
-     * Handle "Share QR..." menu item
-     * 
-     * This shows {@link QrCodeFragment} in single-pane mode, or invokes
-     * {@link QrCodeFragment#shareQrCode()} in two-pane mode
-     * 
-     * @return <code>true</code>
-     */
-    private boolean shareQrCode() {
-
-        if (qrCodeFragment == null) {
-
-            FragmentManager manager = getSupportFragmentManager();
-            FragmentTransaction transaction = manager.beginTransaction();
-            transaction.replace(R.id.single_fragment,
-                    QrCodeFragment.newInstance(settings));
-            transaction.addToBackStack(null);
-            transaction.commit();
-
-        } else {
-
-            qrCodeFragment.shareQrCode();
-
-        }
-
-        return true;
-
-    }
-
-    /**
-     * Handle the response from another activity started by this one for its
-     * result
-     * 
-     * @param requestCode
-     *            the request code to which this is the response
-     * 
-     * @param resultCode
-     *            the result code for the response
-     * 
-     * @param resultData
-     *            the result data from the response
-     * 
-     * @see android.support.v4.app.FragmentActivity#onActivityResult(int, int,
-     *      android.content.Intent)
-     */
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode,
-            Intent resultData) {
-
-        super.onActivityResult(requestCode, resultCode, resultData);
-
-        switch (requestCode) {
-
-            case REQUEST_WRITE_TAG:
-
-                onTagWritten(resultCode, resultData);
-                break;
-
-            default:
-
-                alert(getString(R.string.unrecognized_request));
-                break;
-
-        }
-    }
-
-    /**
      * Handle result from {@link WriteTagActivity}
      * 
      * @param resultCode
@@ -533,6 +505,35 @@ public final class MainActivity extends FragmentActivity implements
                 alert(getString(R.string.unrecognized_result_code, resultCode));
 
         }
+
+    }
+
+    /**
+     * Handle "Share QR..." menu item
+     * 
+     * This shows {@link QrCodeFragment} in single-pane mode, or invokes
+     * {@link QrCodeFragment#shareQrCode()} in two-pane mode
+     * 
+     * @return <code>true</code>
+     */
+    private boolean shareQrCode() {
+
+        if (qrCodeFragment == null) {
+
+            FragmentManager manager = getSupportFragmentManager();
+            FragmentTransaction transaction = manager.beginTransaction();
+            transaction.replace(R.id.single_fragment,
+                    QrCodeFragment.newInstance(settings));
+            transaction.addToBackStack(null);
+            transaction.commit();
+
+        } else {
+
+            qrCodeFragment.shareQrCode();
+
+        }
+
+        return true;
 
     }
 

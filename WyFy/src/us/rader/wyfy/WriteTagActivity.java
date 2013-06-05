@@ -132,13 +132,6 @@ public final class WriteTagActivity extends NdefWriterActivity {
         setContentView(R.layout.write_tag_activity);
         // Show the Up button in the action bar.
         setupActionBar();
-
-        if (savedInstanceState != null) {
-
-            return;
-
-        }
-
         Intent intent;
 
         if (uri == null) {
