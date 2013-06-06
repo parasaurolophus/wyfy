@@ -16,19 +16,9 @@
 package us.rader.wyfy;
 
 import us.rader.wyfy.model.WifiSettings;
-import us.rader.wyfy.model.WifiSettings.ConnectionOutcome;
 import us.rader.wyfy.model.WifiSettings.Security;
 import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
-import android.net.wifi.WifiManager;
-import android.nfc.NdefMessage;
-import android.nfc.NdefRecord;
-import android.nfc.NfcAdapter;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -40,16 +30,13 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.RadioGroup;
-import android.widget.RadioGroup.OnCheckedChangeListener;
 
 /**
- * {@link Fragment} for the WIFI settings UI
+ * {@link Fragment} for the WIFI wifiSettings UI
  * 
  * @author Kirk
  */
-public final class WifiSettingsFragment extends Fragment implements
-        OnCheckedChangeListener,
-        android.widget.CompoundButton.OnCheckedChangeListener, TextWatcher {
+public final class WifiSettingsFragment extends Fragment {
 
     /**
      * Interface implemented by any {@link Activity} to which this
@@ -61,138 +48,193 @@ public final class WifiSettingsFragment extends Fragment implements
 
         /**
          * Notify listener that the user modified the values of the wifi
-         * settings UI
+         * wifiSettings UI
          */
         void onWifiSettingsChanged();
 
     }
 
     /**
-     * Attempt to connect to wifi in a worker thread
+     * {@link android.widget.CompoundButton.OnCheckedChangeListener} for changes
+     * to the state of the checkbox denoting a hidden SSID
      * 
      * @author Kirk
      */
-    private class ConnectTask extends
-            AsyncTask<Void, Void, WifiSettings.ConnectionOutcome> {
+    private class HiddenCheckedChangeListener implements
+            CompoundButton.OnCheckedChangeListener {
 
         /**
-         * Connect to wifi in a worker thread
+         * Handle change to checked state of a {@link CompoundButton}
          * 
-         * @param params
-         *            ignored
+         * @param button
+         *            {@link CompoundButton}
          * 
-         * @see android.os.AsyncTask#doInBackground(Void...)
+         * @param checked
+         *            checked state of the <code>button</code>
+         * 
+         * @see android.widget.CompoundButton.OnCheckedChangeListener#onCheckedChanged(android.widget.CompoundButton,
+         *      boolean)
          */
         @Override
-        protected WifiSettings.ConnectionOutcome doInBackground(Void... params) {
+        public void onCheckedChanged(CompoundButton button, boolean checked) {
 
-            try {
+            switch (button.getId()) {
 
-                return WifiSettings.getInstance().connect(
-                        (WifiManager) getActivity().getSystemService(
-                                Context.WIFI_SERVICE));
+                case R.id.hidden_checkbox:
 
-            } catch (Exception e) {
+                    wifiSettings.setHidden(checked);
+                    notifyListener();
+                    break;
 
-                Log.e(getClass().getName(), "error connecting to wifi", e); //$NON-NLS-1$
-                return ConnectionOutcome.FAILED;
+                default:
+
+                    break;
 
             }
-        }
-
-        /**
-         * Report outcome to user
-         * 
-         * @param result
-         *            value returned by
-         *            {@link WifiSettings#connect(WifiManager)} in the worker
-         *            thread
-         * 
-         * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
-         */
-        @Override
-        protected void onPostExecute(WifiSettings.ConnectionOutcome result) {
-
-            updateSettings();
 
         }
 
     }
 
     /**
-     * Invoke {@link WifiSettings#getActiveConnection(WifiManager)} in a worker
-     * thread
+     * {@Link RadioGroup.OnCheckedChangeListener} used to track selected
+     * security protocol
      * 
      * @author Kirk
      */
-    private class GetActiveConnectionTask extends
-            AsyncTask<Void, Void, Boolean> {
+    private class SecurityCheckedChangeListener implements
+            RadioGroup.OnCheckedChangeListener {
 
         /**
-         * Invoke {@link WifiSettings#getActiveConnection(WifiManager)}
+         * Notify {@link #listener} of a change to the state of a
+         * {@link RadioGroup}
          * 
-         * @param params
-         *            ignored
+         * @param group
+         *            {@link RadioGroup}
          * 
-         * @return result of calling
-         *         {@link WifiSettings#getActiveConnection(WifiManager)}
+         * @param id
+         *            id of the checked radio button or -1 to indicate check
+         *            cleared
          * 
-         * @see android.os.AsyncTask#doInBackground(Void...)
+         * @see android.widget.RadioGroup.OnCheckedChangeListener#onCheckedChanged(android
+         *      .widget.RadioGroup, int)
          */
         @Override
-        protected Boolean doInBackground(Void... params) {
+        public void onCheckedChanged(RadioGroup group, int id) {
 
-            try {
+            switch (id) {
 
-                WifiManager manager = (WifiManager) getActivity()
-                        .getSystemService(Context.WIFI_SERVICE);
-                return WifiSettings.getInstance().getActiveConnection(manager);
+                case R.id.wep_radio:
 
-            } catch (Exception e) {
+                    wifiSettings.setSecurity(Security.WEP);
+                    break;
 
-                Log.e(getClass().getName(), "getActiveConnection", e); //$NON-NLS-1$
-                return Boolean.FALSE;
+                case R.id.wpa_radio:
+
+                    wifiSettings.setSecurity(Security.WPA);
+                    break;
+
+                default:
+
+                    wifiSettings.setSecurity(Security.NONE);
+                    break;
+
             }
 
-        }
-
-        /**
-         * Update the QR code if in two-pane mode
-         * 
-         * @param result
-         *            result of calling
-         *            {@link WifiSettings#getActiveConnection(WifiManager)}
-         * 
-         * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
-         */
-        @Override
-        protected void onPostExecute(Boolean result) {
-
-            updateSettings();
+            notifyListener();
 
         }
 
     }
 
     /**
+     * {@link TextWatcher} for edits to SSID and password strings
      * 
+     * @author Kirk
      */
-    private static final String           HIDDEN_PARAMETER   = "HIDDEN";  //$NON-NLS-1$
+    private class WifiSettingsTextWatcher implements TextWatcher {
+
+        /**
+         * Notify {@link #listener} that SSID or password has been edited by the
+         * user
+         * 
+         * @param editable
+         *            ignored due to ill-thought out Android API
+         * 
+         * @see android.text.TextWatcher#afterTextChanged(android.text.Editable)
+         */
+        @Override
+        public void afterTextChanged(Editable editable) {
+
+            wifiSettings.setSsid(ssidText.getText().toString());
+            wifiSettings.setPassword(passwordText.getText().toString());
+            notifyListener();
+
+        }
+
+        /**
+         * Ignored
+         * 
+         * @param s
+         *            ignored
+         * 
+         * @param start
+         *            ignored
+         * 
+         * @param count
+         *            ignored
+         * 
+         * @param after
+         *            ignored
+         * 
+         * @see android.text.TextWatcher#beforeTextChanged(java.lang.CharSequence,
+         *      int, int, int)
+         */
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count,
+                int after) {
+
+            // nothing to do here
+
+        }
+
+        /**
+         * Ignored
+         * 
+         * @param s
+         *            ignored
+         * 
+         * @param start
+         *            ignored
+         * 
+         * @param before
+         *            ignored
+         * 
+         * @param count
+         *            ignored
+         * 
+         * @see TextWatcher#onTextChanged(CharSequence, int, int, int)
+         */
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before,
+                int count) {
+
+            // nothing to do here
+
+        }
+
+    }
 
     /**
-     * 
+     * Cache the singleton instance of {@link WifiSettings}
      */
-    private static final String           PASSWORD_PARAMETER = "PASSWORD"; //$NON-NLS-1$
+    private static WifiSettings           wifiSettings;
 
-    /**
-     * 
-     */
-    private static final String           SECURITY_PARAMETER = "SECURITY"; //$NON-NLS-1$
+    static {
 
-    /**
-     * 
-     */
-    private static final String           SSID_PARAMETER     = "SSID";    //$NON-NLS-1$
+        wifiSettings = WifiSettings.getInstance();
+
+    }
 
     /**
      * Turn {@link #notifyListener()} into a no-op while
@@ -207,7 +249,7 @@ public final class WifiSettingsFragment extends Fragment implements
 
     /**
      * The {@link OnWifiSettingsChangedListener} to notify of changes to wi fi
-     * settings
+     * wifiSettings
      */
     private OnWifiSettingsChangedListener listener;
 
@@ -236,51 +278,6 @@ public final class WifiSettingsFragment extends Fragment implements
     }
 
     /**
-     * Notify {@link #listener} that SSID or password has been edited by the
-     * user
-     * 
-     * @param editable
-     *            ignored due to ill-thought out Android API
-     * 
-     * @see android.text.TextWatcher#afterTextChanged(android.text.Editable)
-     */
-    @Override
-    public void afterTextChanged(Editable editable) {
-
-        WifiSettings settings = WifiSettings.getInstance();
-        settings.setSsid(ssidText.getText().toString());
-        settings.setPassword(passwordText.getText().toString());
-        notifyListener();
-
-    }
-
-    /**
-     * Ignored
-     * 
-     * @param s
-     *            ignored
-     * 
-     * @param start
-     *            ignored
-     * 
-     * @param count
-     *            ignored
-     * 
-     * @param after
-     *            ignored
-     * 
-     * @see android.text.TextWatcher#beforeTextChanged(java.lang.CharSequence,
-     *      int, int, int)
-     */
-    @Override
-    public void beforeTextChanged(CharSequence s, int start, int count,
-            int after) {
-
-        // nothing to do here
-
-    }
-
-    /**
      * Set the {@link #listener}
      * 
      * @param activity
@@ -294,116 +291,6 @@ public final class WifiSettingsFragment extends Fragment implements
         super.onAttach(activity);
         this.listener = (OnWifiSettingsChangedListener) activity;
 
-    }
-
-    /**
-     * Handle change to checked state of a {@link CompoundButton}
-     * 
-     * @param button
-     *            {@link CompoundButton}
-     * 
-     * @param checked
-     *            checked state of the <code>button</code>
-     * 
-     * @see android.widget.CompoundButton.OnCheckedChangeListener#onCheckedChanged(android.widget.CompoundButton,
-     *      boolean)
-     */
-    @Override
-    public void onCheckedChanged(CompoundButton button, boolean checked) {
-
-        switch (button.getId()) {
-
-            case R.id.hidden_checkbox:
-
-                WifiSettings.getInstance().setHidden(checked);
-                notifyListener();
-                break;
-
-            default:
-
-                break;
-
-        }
-
-    }
-
-    /**
-     * Notify {@link #listener} of a change to the state of a {@link RadioGroup}
-     * 
-     * @param group
-     *            {@link RadioGroup}
-     * 
-     * @param id
-     *            id of the checked radio button or -1 to indicate check cleared
-     * 
-     * @see android.widget.RadioGroup.OnCheckedChangeListener#onCheckedChanged(android
-     *      .widget.RadioGroup, int)
-     */
-    @Override
-    public void onCheckedChanged(RadioGroup group, int id) {
-
-        WifiSettings settings = WifiSettings.getInstance();
-
-        switch (id) {
-
-            case R.id.wep_radio:
-
-                settings.setSecurity(Security.WEP);
-                break;
-
-            case R.id.wpa_radio:
-
-                settings.setSecurity(Security.WPA);
-                break;
-
-            default:
-
-                settings.setSecurity(Security.NONE);
-                break;
-
-        }
-
-        notifyListener();
-
-    }
-
-    /**
-     * Prepare this instance to be displayed
-     * 
-     * @param savedInstanceState
-     *            saved state or <code>null</code>
-     * 
-     * @see android.support.v4.app.Fragment#onCreate(android.os.Bundle)
-     */
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-
-        super.onCreate(savedInstanceState);
-
-        if (savedInstanceState == null) {
-
-            Intent intent = getActivity().getIntent();
-
-            if (intent != null) {
-
-                if (!parseIntentData(intent)) {
-
-                    getActiveConnection();
-
-                }
-            }
-
-        } else {
-
-            WifiSettings settings = WifiSettings.getInstance();
-            settings.setSsid(savedInstanceState.getString(SSID_PARAMETER));
-            settings.setPassword(savedInstanceState
-                    .getString(PASSWORD_PARAMETER));
-            settings.setHidden(savedInstanceState.getBoolean(HIDDEN_PARAMETER));
-            settings.setSecurity((Security) savedInstanceState
-                    .getSerializable(SECURITY_PARAMETER));
-
-        }
     }
 
     /**
@@ -437,10 +324,13 @@ public final class WifiSettingsFragment extends Fragment implements
             securityGroup = (RadioGroup) view.findViewById(R.id.security_group);
             hiddenCheckBox = (CheckBox) view.findViewById(R.id.hidden_checkbox);
             updateSettings();
-            ssidText.addTextChangedListener(this);
-            passwordText.addTextChangedListener(this);
-            securityGroup.setOnCheckedChangeListener(this);
-            hiddenCheckBox.setOnCheckedChangeListener(this);
+            WifiSettingsTextWatcher textWatcher = new WifiSettingsTextWatcher();
+            ssidText.addTextChangedListener(textWatcher);
+            passwordText.addTextChangedListener(textWatcher);
+            securityGroup
+                    .setOnCheckedChangeListener(new SecurityCheckedChangeListener());
+            hiddenCheckBox
+                    .setOnCheckedChangeListener(new HiddenCheckedChangeListener());
             return view;
 
         } finally {
@@ -465,56 +355,10 @@ public final class WifiSettingsFragment extends Fragment implements
     }
 
     /**
-     * Save the app-specific state of this instance
-     * 
-     * @param outState
-     *            saved state
-     * 
-     * @see android.support.v4.app.Fragment#onSaveInstanceState(android.os.Bundle)
-     */
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-
-        super.onSaveInstanceState(outState);
-        WifiSettings settings = WifiSettings.getInstance();
-        outState.putString(SSID_PARAMETER, settings.getSsid());
-        outState.putString(PASSWORD_PARAMETER, settings.getPassword());
-        outState.putBoolean(HIDDEN_PARAMETER, settings.isHidden());
-        outState.putSerializable(SECURITY_PARAMETER, settings.getSecurity());
-
-    }
-
-    /**
-     * Ignored
-     * 
-     * @param s
-     *            ignored
-     * 
-     * @param start
-     *            ignored
-     * 
-     * @param before
-     *            ignored
-     * 
-     * @param count
-     *            ignored
-     * 
-     * @see TextWatcher#onTextChanged(CharSequence, int, int, int)
-     */
-    @Override
-    public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-        // nothing to do here
-
-    }
-
-    /**
-     * Update the state of the UI widgets to match the current wi fi settings
-     * model state
+     * Update the state of the UI widgets to match the current wi fi
+     * wifiSettings model state
      */
     public void updateSettings() {
-
-        WifiSettings settings = WifiSettings.getInstance();
 
         // don't queue up a bunch of notifications while updating multiple
         // widgets...
@@ -522,11 +366,11 @@ public final class WifiSettingsFragment extends Fragment implements
 
         try {
 
-            ssidText.setText(settings.getSsid());
-            passwordText.setText(settings.getPassword());
-            hiddenCheckBox.setChecked(settings.isHidden());
+            ssidText.setText(wifiSettings.getSsid());
+            passwordText.setText(wifiSettings.getPassword());
+            hiddenCheckBox.setChecked(wifiSettings.isHidden());
 
-            switch (settings.getSecurity()) {
+            switch (wifiSettings.getSecurity()) {
 
                 case WEP:
 
@@ -555,18 +399,8 @@ public final class WifiSettingsFragment extends Fragment implements
     }
 
     /**
-     * Initialize the wi fi settings model based on the currently active
-     * connection, if any
-     */
-    private void getActiveConnection() {
-
-        new GetActiveConnectionTask().execute();
-
-    }
-
-    /**
-     * Notify {@link #listener} that the wi fi settings habe been changed by the
-     * user
+     * Notify {@link #listener} that the wi fi wifiSettings habe been changed by
+     * the user
      */
     private void notifyListener() {
 
@@ -583,115 +417,6 @@ public final class WifiSettingsFragment extends Fragment implements
             Log.e(getClass().getName(), "notifyListener", e); //$NON-NLS-1$
 
         }
-    }
-
-    /**
-     * Parse the data passed in the given {@link Intent} at launch
-     * 
-     * @param intent
-     *            the {@link Intent}
-     * 
-     * @return <code>true</code> if and only if an asynchronouse attempt to
-     *         connect was launched
-     */
-    private boolean parseIntentData(Intent intent) {
-        Uri uri = intent.getData();
-
-        if (uri != null) {
-
-            return parseUri(uri.toString());
-
-        }
-
-        Parcelable[] ndefMessages = intent
-                .getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
-
-        if ((ndefMessages != null) && (ndefMessages.length > 0)) {
-
-            return parseLegacyMessage((NdefMessage) ndefMessages[0]);
-
-        }
-
-        return false;
-
-    }
-
-    /**
-     * Initialize from a legacy {@link NdefMessage}
-     * 
-     * Provide backward compatibility for tags written with older versions of
-     * this app
-     * 
-     * @param ndefMessage
-     *            legacy {@link NdefMessage}
-     * 
-     * @return <code>true</code> if and only if an asynchronouse attempt to
-     *         connect was launched
-     */
-    private boolean parseLegacyMessage(NdefMessage ndefMessage) {
-
-        try {
-
-            NdefRecord[] records = ndefMessage.getRecords();
-
-            if (records.length > 0) {
-
-                NdefRecord record = records[0];
-
-                if (record.getTnf() != NdefRecord.TNF_MIME_MEDIA) {
-
-                    return false;
-
-                }
-
-                String type = new String(record.getType(), "US-ASCII"); //$NON-NLS-1$
-
-                if ("application/x-wyfy".equals(type)) { //$NON-NLS-1$
-
-                    String payload = new String(record.getPayload(), "US-ASCII"); //$NON-NLS-1$
-                    return parseUri(payload);
-
-                }
-            }
-
-        } catch (Exception e) {
-
-            Log.e(getClass().getName(), "initializeNdefMessage", e); //$NON-NLS-1$
-
-        }
-
-        return false;
-
-    }
-
-    /**
-     * Initialize wi fi model state from the given WIFI: {@link Uri}
-     * 
-     * @param uri
-     *            WIFI: {@link Uri}
-     * 
-     * @return <code>true</code> if and only if an asynchronous attempt to
-     *         connect was launched
-     */
-    private boolean parseUri(String uri) {
-
-        try {
-
-            if (WifiSettings.getInstance().parse(uri)) {
-
-                new ConnectTask().execute();
-                return true;
-
-            }
-
-        } catch (Exception e) {
-
-            Log.e(getClass().getName(), "error parsing URI", e); //$NON-NLS-1$
-
-        }
-
-        return false;
-
     }
 
 }

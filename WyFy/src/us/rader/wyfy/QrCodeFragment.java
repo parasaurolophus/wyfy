@@ -56,7 +56,7 @@ public final class QrCodeFragment extends Fragment {
 
         /**
          * Return the {@link Bitmap} for the QR code image representing
-         * <code>settings[0]</code>
+         * <code>wifiSettings[0]</code>
          * 
          * @param params
          *            ignored
@@ -76,7 +76,7 @@ public final class QrCodeFragment extends Fragment {
 
                 if (size > 0) {
 
-                    return WifiSettings.getInstance().getQrCode(size);
+                    return wifiSettings.getQrCode(size);
 
                 }
 
@@ -112,9 +112,20 @@ public final class QrCodeFragment extends Fragment {
     }
 
     /**
+     * Cache the singleton instance of {@link WifiSettings}
+     */
+    private static WifiSettings wifiSettings;
+
+    static {
+
+        wifiSettings = WifiSettings.getInstance();
+
+    }
+
+    /**
      * QR code image
      */
-    private ImageView qrCode;
+    private ImageView           qrCode;
 
     /**
      * Inflate the {@Link View}
@@ -158,8 +169,8 @@ public final class QrCodeFragment extends Fragment {
     }
 
     /**
-     * Update the QR code bitmap now that the settings have, presumably, been
-     * restored and the view is, hopefully, ready
+     * Update the QR code bitmap now that the wifiSettings have, presumably,
+     * been restored and the view is, hopefully, ready
      * 
      * @see android.support.v4.app.Fragment#onResume()
      */
@@ -198,8 +209,7 @@ public final class QrCodeFragment extends Fragment {
         try {
 
             FragmentActivity activity = getActivity();
-            Bitmap bitmap = WifiSettings.getInstance().getQrCode(
-                    getQrCodeSize());
+            Bitmap bitmap = wifiSettings.getQrCode(getQrCodeSize());
             File file = activity.getFileStreamPath("wyfy_qr.png"); //$NON-NLS-1$
             FileOutputStream stream = activity
                     .openFileOutput(file.getName(), 0);
