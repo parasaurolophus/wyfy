@@ -16,7 +16,6 @@
 package us.rader.wyfy;
 
 import us.rader.wyfy.model.WifiSettings;
-import us.rader.wyfy.model.WifiSettings.ConnectionOutcome;
 import us.rader.wyfy.nfc.ForegroundDispatchActivity;
 import us.rader.wyfy.nfc.NdefReaderActivity;
 import android.app.Activity;
@@ -24,18 +23,13 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
-import android.net.wifi.WifiManager;
 import android.nfc.NdefMessage;
 import android.nfc.NdefRecord;
-import android.nfc.NfcAdapter;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -46,156 +40,6 @@ import android.view.MenuItem;
  */
 public final class MainActivity extends FragmentActivity implements
         WifiSettingsFragment.OnWifiSettingsChangedListener {
-
-    /**
-     * Attempt to connect to wifi in a worker thread
-     * 
-     * @author Kirk
-     */
-    private class ConnectTask extends
-            AsyncTask<Void, Void, WifiSettings.ConnectionOutcome> {
-
-        /**
-         * Connect to wifi in a worker thread
-         * 
-         * @param params
-         *            ignored
-         * 
-         * @see android.os.AsyncTask#doInBackground(Void...)
-         */
-        @Override
-        protected WifiSettings.ConnectionOutcome doInBackground(Void... params) {
-
-            try {
-
-                return WifiSettings.getInstance().connect(
-                        (WifiManager) getSystemService(WIFI_SERVICE));
-
-            } catch (Exception e) {
-
-                Log.e(getClass().getName(), "error connecting to wifi", e); //$NON-NLS-1$
-                return ConnectionOutcome.FAILED;
-
-            }
-        }
-
-        /**
-         * Report outcome to user
-         * 
-         * @param result
-         *            value returned by
-         *            {@link WifiSettings#connect(WifiManager)} in the worker
-         *            thread
-         * 
-         * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
-         */
-        @Override
-        protected void onPostExecute(WifiSettings.ConnectionOutcome result) {
-
-            String ssid = WifiSettings.getInstance().getSsid();
-
-            switch (result) {
-
-                case ADDED:
-
-                    alert(getString(R.string.successfully_added_wifi, ssid));
-                    break;
-
-                case ENABLED:
-
-                    alert(getString(R.string.successfully_enabled_wifi, ssid));
-                    break;
-
-                case FAILED:
-
-                    alert(getString(R.string.failed_to_enable_wifi, ssid));
-                    break;
-
-                default:
-
-                    alert(getString(R.string.unrecognized_connection_outcome,
-                            result));
-                    break;
-
-            }
-
-            if (qrCodeFragment != null) {
-
-                qrCodeFragment.updateQrCode();
-
-            }
-        }
-
-    }
-
-    /**
-     * Invoke {@link WifiSettings#getActiveConnection(WifiManager)} in a worker
-     * thread
-     * 
-     * @author Kirk
-     */
-    private class GetActiveConnectionTask extends
-            AsyncTask<Void, Void, Boolean> {
-
-        /**
-         * Invoke {@link WifiSettings#getActiveConnection(WifiManager)}
-         * 
-         * @param params
-         *            ignored
-         * 
-         * @return result of calling
-         *         {@link WifiSettings#getActiveConnection(WifiManager)}
-         * 
-         * @see android.os.AsyncTask#doInBackground(Void...)
-         */
-        @Override
-        protected Boolean doInBackground(Void... params) {
-
-            try {
-
-                WifiManager manager = (WifiManager) getSystemService(WIFI_SERVICE);
-                return WifiSettings.getInstance().getActiveConnection(manager);
-
-            } catch (Exception e) {
-
-                Log.e(getClass().getName(), "getActiveConnection", e); //$NON-NLS-1$
-                return Boolean.FALSE;
-            }
-
-        }
-
-        /**
-         * Update the QR code if in two-pane mode
-         * 
-         * @param result
-         *            result of calling
-         *            {@link WifiSettings#getActiveConnection(WifiManager)}
-         * 
-         * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
-         */
-        @Override
-        protected void onPostExecute(Boolean result) {
-
-            if (result) {
-
-                alert(getString(R.string.initialized_from_active_connection,
-                        WifiSettings.getInstance().getSsid()));
-
-            } else {
-
-                alert(getString(R.string.no_active_connection));
-
-            }
-
-            if (qrCodeFragment != null) {
-
-                qrCodeFragment.updateQrCode();
-
-            }
-
-        }
-
-    }
 
     /**
      * {@link Activity#startActivityForResult(Intent, int)} request code when
@@ -325,22 +169,8 @@ public final class MainActivity extends FragmentActivity implements
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-
         setFragments(savedInstanceState);
 
-        if (savedInstanceState == null) {
-
-            Intent intent = getIntent();
-
-            if (intent != null) {
-
-                if (!parseIntentData(intent)) {
-
-                    getActiveConnection();
-
-                }
-            }
-        }
     }
 
     /**
@@ -367,16 +197,6 @@ public final class MainActivity extends FragmentActivity implements
                 });
 
         builder.show();
-
-    }
-
-    /**
-     * Initialize the wi fi settings model based on the currently active
-     * connection, if any
-     */
-    private void getActiveConnection() {
-
-        new GetActiveConnectionTask().execute();
 
     }
 
@@ -440,115 +260,6 @@ public final class MainActivity extends FragmentActivity implements
                 alert(getString(R.string.unrecognized_result_code, resultCode));
 
         }
-
-    }
-
-    /**
-     * Parse the data passed in the given {@link Intent} at launch
-     * 
-     * @param intent
-     *            the {@link Intent}
-     * 
-     * @return <code>true</code> if and only if an asynchronouse attempt to
-     *         connect was launched
-     */
-    private boolean parseIntentData(Intent intent) {
-        Uri uri = intent.getData();
-
-        if (uri != null) {
-
-            return parseUri(uri.toString());
-
-        }
-
-        Parcelable[] ndefMessages = intent
-                .getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
-
-        if ((ndefMessages != null) && (ndefMessages.length > 0)) {
-
-            return parseLegacyMessage((NdefMessage) ndefMessages[0]);
-
-        }
-
-        return false;
-
-    }
-
-    /**
-     * Initialize from a legacy {@link NdefMessage}
-     * 
-     * Provide backward compatibility for tags written with older versions of
-     * this app
-     * 
-     * @param ndefMessage
-     *            legacy {@link NdefMessage}
-     * 
-     * @return <code>true</code> if and only if an asynchronouse attempt to
-     *         connect was launched
-     */
-    private boolean parseLegacyMessage(NdefMessage ndefMessage) {
-
-        try {
-
-            NdefRecord[] records = ndefMessage.getRecords();
-
-            if (records.length > 0) {
-
-                NdefRecord record = records[0];
-
-                if (record.getTnf() != NdefRecord.TNF_MIME_MEDIA) {
-
-                    return false;
-
-                }
-
-                String type = new String(record.getType(), "US-ASCII"); //$NON-NLS-1$
-
-                if ("application/x-wyfy".equals(type)) { //$NON-NLS-1$
-
-                    String payload = new String(record.getPayload(), "US-ASCII"); //$NON-NLS-1$
-                    return parseUri(payload);
-
-                }
-            }
-
-        } catch (Exception e) {
-
-            Log.e(getClass().getName(), "initializeNdefMessage", e); //$NON-NLS-1$
-
-        }
-
-        return false;
-
-    }
-
-    /**
-     * Initialize wi fi model state from the given WIFI: {@link Uri}
-     * 
-     * @param uri
-     *            WIFI: {@link Uri}
-     * 
-     * @return <code>true</code> if and only if an asynchronous attempt to
-     *         connect was launched
-     */
-    private boolean parseUri(String uri) {
-
-        try {
-
-            if (WifiSettings.getInstance().parse(uri)) {
-
-                new ConnectTask().execute();
-                return true;
-
-            }
-
-        } catch (Exception e) {
-
-            Log.e(getClass().getName(), "error parsing URI", e); //$NON-NLS-1$
-
-        }
-
-        return false;
 
     }
 

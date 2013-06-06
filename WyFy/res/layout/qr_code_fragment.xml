@@ -11,6 +11,7 @@
         android:layout_height="match_parent"
         android:layout_centerInParent="true"
         android:contentDescription="@string/qr_code_label"
+        android:scaleType="centerInside"
         android:src="@drawable/ic_placeholder" />
 
 </RelativeLayout>

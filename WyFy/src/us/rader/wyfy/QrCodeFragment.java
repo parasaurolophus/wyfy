@@ -17,6 +17,8 @@ package us.rader.wyfy;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import us.rader.wyfy.model.WifiSettings;
 import us.rader.wyfy.provider.FileProvider;
@@ -152,6 +154,34 @@ public final class QrCodeFragment extends Fragment {
         });
 
         return view;
+
+    }
+
+    /**
+     * Update the QR code bitmap now that the settings have, presumably, been
+     * restored and the view is, hopefully, ready
+     * 
+     * @see android.support.v4.app.Fragment#onResume()
+     */
+    @Override
+    public void onResume() {
+
+        super.onResume();
+
+        // TODO: figure out a better way to work around state-management bug in
+        // Android UI classes than using a Timer to delay this initial refresh
+        TimerTask task = new TimerTask() {
+
+            @Override
+            public void run() {
+
+                updateQrCode();
+
+            }
+
+        };
+
+        new Timer().schedule(task, 500);
 
     }
 

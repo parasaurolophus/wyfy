@@ -91,6 +91,11 @@ public final class WifiSettings implements Serializable {
          */
         WPA;
 
+        /**
+         * Serialization version number
+         */
+        private static final long serialVersionUID = 1L;
+
     }
 
     /**
