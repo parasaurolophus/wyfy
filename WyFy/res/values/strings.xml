@@ -33,5 +33,6 @@
     <string name="unparseable_payload">Unparseable payload</string>
     <string name="initialized_from_active_connection">Initialized from active connection to %1$s</string>
     <string name="no_active_connection">No active connection</string>
+    <string name="scan_qr_label">Scan QR&#8230;</string>
 
 </resources>

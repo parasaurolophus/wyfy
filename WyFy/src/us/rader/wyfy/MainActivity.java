@@ -40,6 +40,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.google.zxing.integration.android.IntentIntegrator;
+
 /**
  * Launcher {@link Activity} for <code>WyFy</code> app
  * 
@@ -291,6 +293,11 @@ public final class MainActivity extends FragmentActivity implements
                 shareQrCode();
                 return true;
 
+            case R.id.scan_qr_item:
+
+                scanQrCode();
+                return true;
+
             default:
 
                 return super.onOptionsItemSelected(item);
@@ -361,6 +368,11 @@ public final class MainActivity extends FragmentActivity implements
             case REQUEST_WRITE_TAG:
 
                 onTagWritten(resultCode, resultData);
+                break;
+
+            case IntentIntegrator.REQUEST_CODE:
+
+                onQrCodeScanned(resultCode, resultData);
                 break;
 
             default:
@@ -438,6 +450,23 @@ public final class MainActivity extends FragmentActivity implements
                 });
 
         builder.show();
+
+    }
+
+    /**
+     * Handle notification that a QR code was scanned at the user's request
+     * using zxing's {@link IntentIntegrator}
+     * 
+     * @param resultCode
+     *            the result code
+     * 
+     * @param resultData
+     *            the {@link Intent} representing the result from the quest
+     */
+    private void onQrCodeScanned(int resultCode, Intent resultData) {
+
+        // TODO Auto-generated method stub
+        throw new RuntimeException("not yet implemented"); //$NON-NLS-1$
 
     }
 
@@ -616,6 +645,18 @@ public final class MainActivity extends FragmentActivity implements
         }
 
         return false;
+
+    }
+
+    /**
+     * Use {@link IntentIntegrator} to request that zxing scan a QR code
+     */
+    private void scanQrCode() {
+
+        IntentIntegrator intentIntegrator = new IntentIntegrator(this);
+        intentIntegrator
+                .setTargetApplications(IntentIntegrator.TARGET_ALL_KNOWN);
+        intentIntegrator.initiateScan(IntentIntegrator.QR_CODE_TYPES);
 
     }
 
