@@ -53,7 +53,7 @@ public final class WifiSettings implements Serializable {
     public enum ConnectionOutcome {
 
         /**
-         * Added and successfully connected
+         * Added and enabled
          */
         ADDED,
 
@@ -67,10 +67,15 @@ public final class WifiSettings implements Serializable {
          */
         FAILED;
 
+        /**
+         * Serialization version number
+         */
+        private static final long serialVersionUID = 1L;
+
     }
 
     /**
-     * Enumeratio of supported wifi security protocols
+     * Enumeration of supported wifi security protocols
      * 
      * @author Kirk
      */

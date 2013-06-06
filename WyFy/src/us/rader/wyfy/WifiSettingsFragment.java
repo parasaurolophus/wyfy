@@ -238,7 +238,7 @@ public final class WifiSettingsFragment extends Fragment {
 
     /**
      * Turn {@link #notifyListener()} into a no-op while
-     * {@link #delayNotifications} is greater than 0
+     * {@link #delayNotifications} is not 0
      */
     private int                           delayNotifications;
 
@@ -406,11 +406,25 @@ public final class WifiSettingsFragment extends Fragment {
 
         try {
 
-            if ((delayNotifications == 0) && (listener != null)) {
+            if (delayNotifications != 0) {
 
-                listener.onWifiSettingsChanged();
+                Log.i(getClass().getName(),
+                        "noifyListener(): delayNotifications is " //$NON-NLS-1$
+                                + delayNotifications + ", exiting"); //$NON-NLS-1$
+                return;
 
             }
+
+            if (listener == null) {
+
+                Log.i(getClass().getName(),
+                        "noifyListener(): lisetener is null, exiting"); //$NON-NLS-1$
+                return;
+
+            }
+
+            Log.i(getClass().getName(), "noifyListener(): notifying listener"); //$NON-NLS-1$
+            listener.onWifiSettingsChanged();
 
         } catch (Exception e) {
 
