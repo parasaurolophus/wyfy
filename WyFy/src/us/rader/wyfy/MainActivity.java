@@ -41,6 +41,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
 
 /**
  * Launcher {@link Activity} for <code>WyFy</code> app
@@ -71,7 +72,7 @@ public final class MainActivity extends FragmentActivity implements
 
             try {
 
-                return wifiSettings.connect(manager);
+                return wifiSettings.connect(wifiManager);
 
             } catch (Exception e) {
 
@@ -109,6 +110,7 @@ public final class MainActivity extends FragmentActivity implements
                     break;
 
                 case FAILED:
+                default:
 
                     alert(getString(R.string.failed_to_enable_wifi, ssid));
                     break;
@@ -117,10 +119,9 @@ public final class MainActivity extends FragmentActivity implements
 
             if (wifiSettingsFragment != null) {
 
-                wifiSettingsFragment.updateSettings();
+                wifiSettingsFragment.onSettingsChanged();
 
             }
-
         }
     }
 
@@ -149,7 +150,7 @@ public final class MainActivity extends FragmentActivity implements
 
             try {
 
-                return wifiSettings.getActiveConnection(manager);
+                return wifiSettings.getActiveConnection(wifiManager);
 
             } catch (Exception e) {
 
@@ -186,7 +187,7 @@ public final class MainActivity extends FragmentActivity implements
 
             if (wifiSettingsFragment != null) {
 
-                wifiSettingsFragment.updateSettings();
+                wifiSettingsFragment.onSettingsChanged();
 
             }
         }
@@ -235,11 +236,6 @@ public final class MainActivity extends FragmentActivity implements
     }
 
     /**
-     * Cached singleton instance of {@link WifiManager}
-     */
-    private WifiManager          manager;
-
-    /**
      * {@link QrCodeFragment} to notify when the wi fi wifiSettings model state
      * changes
      * 
@@ -247,6 +243,11 @@ public final class MainActivity extends FragmentActivity implements
      * single pane
      */
     private QrCodeFragment       qrCodeFragment;
+
+    /**
+     * Cached singleton instance of {@link WifiManager}
+     */
+    private WifiManager          wifiManager;
 
     /**
      * {@link WifiSettingsFragment} to notify when {@link WifiSettings} state
@@ -372,7 +373,7 @@ public final class MainActivity extends FragmentActivity implements
 
             case IntentIntegrator.REQUEST_CODE:
 
-                onQrCodeScanned(resultCode, resultData);
+                onQrCodeScanned(requestCode, resultCode, resultData);
                 break;
 
             default:
@@ -396,7 +397,7 @@ public final class MainActivity extends FragmentActivity implements
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-        manager = (WifiManager) getSystemService(WIFI_SERVICE);
+        wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
         setContentView(R.layout.main);
 
         if (savedInstanceState == null) {
@@ -457,17 +458,67 @@ public final class MainActivity extends FragmentActivity implements
      * Handle notification that a QR code was scanned at the user's request
      * using zxing's {@link IntentIntegrator}
      * 
+     * @param requestCode
+     *            request code
+     * 
      * @param resultCode
-     *            the result code
+     *            result code
      * 
      * @param resultData
-     *            the {@link Intent} representing the result from the quest
+     *            {@link Intent} representing the result from the quest
      */
-    private void onQrCodeScanned(int resultCode, Intent resultData) {
+    private void onQrCodeScanned(int requestCode, int resultCode,
+            Intent resultData) {
 
-        // TODO Auto-generated method stub
-        throw new RuntimeException("not yet implemented"); //$NON-NLS-1$
+        try {
 
+            switch (resultCode) {
+
+                case RESULT_OK:
+
+                    IntentResult scanResult = IntentIntegrator
+                            .parseActivityResult(requestCode, resultCode,
+                                    resultData);
+
+                    if (scanResult == null) {
+
+                        alert(getString(R.string.error_scanning_qr_code));
+
+                    } else {
+
+                        String uri = scanResult.getContents();
+
+                        if (wifiSettings.parse(uri)) {
+
+                            wifiSettingsFragment.onSettingsChanged();
+
+                        } else {
+
+                            alert(getString(R.string.unsupported_qr_code, uri));
+
+                        }
+                    }
+
+                    break;
+
+                case RESULT_CANCELED:
+
+                    alert(getString(R.string.canceled));
+                    break;
+
+                default:
+
+                    alert(getString(R.string.error_scanning_qr_code));
+                    break;
+
+            }
+
+        } catch (Exception e) {
+
+            Log.e(getClass().getName(), "onQrCodeScanned", e); //$NON-NLS-1$
+            alert(getString(R.string.error_scanning_qr_code));
+
+        }
     }
 
     /**

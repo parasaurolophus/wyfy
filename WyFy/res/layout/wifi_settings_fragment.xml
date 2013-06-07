@@ -40,12 +40,12 @@
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
         <EditText
-            android:id="@+id/password_text"
+            android:id="@+id/p_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="2"
             android:ems="10"
-            android:inputType="textPassword" />
+            android:inputType="textNoSuggestions" />
     </TableRow>
 
     <TableRow

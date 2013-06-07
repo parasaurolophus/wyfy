@@ -167,7 +167,7 @@ public final class WifiSettings implements Serializable {
 
             case WEP:
 
-                config.wepKeys = new String[] { denormalize(password) };
+                config.wepKeys = new String[] { password };
 
                 if (password.length() == 10) {
 
@@ -185,7 +185,7 @@ public final class WifiSettings implements Serializable {
 
             case WPA:
 
-                config.preSharedKey = denormalize(password);
+                config.preSharedKey = password;
                 config.allowedGroupCiphers
                         .set(WifiConfiguration.GroupCipher.CCMP);
 
@@ -199,29 +199,6 @@ public final class WifiSettings implements Serializable {
         }
 
         return manager.addNetwork(config);
-
-    }
-
-    /**
-     * Wrap the given string in double-quoes
-     * 
-     * TODO: this should probably try to detect whether such wrapping is
-     * actually necessary for a given string. Need more research
-     * 
-     * @param string
-     *            the string
-     * 
-     * @return the wrapped string
-     */
-    private static String denormalize(String string) {
-
-        if (string == null) {
-
-            return ""; //$NON-NLS-1$
-
-        }
-
-        return "\"" + string + "\""; //$NON-NLS-1$//$NON-NLS-2$
 
     }
 
@@ -376,11 +353,9 @@ public final class WifiSettings implements Serializable {
      */
     public ConnectionOutcome connect(WifiManager manager) {
 
-        String denormalizedSsid = denormalize(ssid);
-
         for (WifiConfiguration configuration : manager.getConfiguredNetworks()) {
 
-            if (configuration.SSID.equals(denormalizedSsid)) {
+            if (configuration.SSID.equals(ssid)) {
 
                 if (manager.enableNetwork(configuration.networkId, false)) {
 
@@ -393,8 +368,7 @@ public final class WifiSettings implements Serializable {
             }
         }
 
-        int networkId = addNetwork(manager, denormalizedSsid, password,
-                security);
+        int networkId = addNetwork(manager, ssid, password, security);
 
         if (networkId == -1) {
 
@@ -774,16 +748,16 @@ public final class WifiSettings implements Serializable {
 
             case WEP:
 
-                buffer.append("P:"); //$NON-NLS-1$
+                buffer.append("T:WEP;P:"); //$NON-NLS-1$
                 buffer.append(password);
-                buffer.append(";T:WEP;"); //$NON-NLS-1$
+                buffer.append(';');
                 break;
 
             case WPA:
 
-                buffer.append("P:"); //$NON-NLS-1$
+                buffer.append("T:WPA;P:"); //$NON-NLS-1$
                 buffer.append(password);
-                buffer.append(";T:WPA;"); //$NON-NLS-1$
+                buffer.append(';');
                 break;
 
             default:

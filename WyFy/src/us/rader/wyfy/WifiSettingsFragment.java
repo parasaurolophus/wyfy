@@ -97,6 +97,31 @@ public final class WifiSettingsFragment extends Fragment {
     }
 
     /**
+     * {@link TextWatcher} for edits to password control
+     * 
+     * @author Kirk
+     */
+    private final class PasswordTextWatcher extends WifiSettingsTextWatcher {
+
+        /**
+         * Notify {@link #listener} that SSID has been edited by the user
+         * 
+         * @param editable
+         *            ignored due to ill-thought out Android API
+         * 
+         * @see android.text.TextWatcher#afterTextChanged(android.text.Editable)
+         */
+        @Override
+        public void afterTextChanged(Editable editable) {
+
+            wifiSettings.setPassword(editable.toString());
+            notifyListener();
+
+        }
+
+    }
+
+    /**
      * {@Link RadioGroup.OnCheckedChangeListener} used to track selected
      * security protocol
      * 
@@ -148,15 +173,14 @@ public final class WifiSettingsFragment extends Fragment {
     }
 
     /**
-     * {@link TextWatcher} for edits to SSID and password strings
+     * {@link TextWatcher} for edits to SSID control
      * 
      * @author Kirk
      */
-    private class WifiSettingsTextWatcher implements TextWatcher {
+    private final class SsidTextWatcher extends WifiSettingsTextWatcher {
 
         /**
-         * Notify {@link #listener} that SSID or password has been edited by the
-         * user
+         * Notify {@link #listener} that SSID has been edited by the user
          * 
          * @param editable
          *            ignored due to ill-thought out Android API
@@ -166,11 +190,31 @@ public final class WifiSettingsFragment extends Fragment {
         @Override
         public void afterTextChanged(Editable editable) {
 
-            wifiSettings.setSsid(ssidText.getText().toString());
-            wifiSettings.setPassword(passwordText.getText().toString());
+            wifiSettings.setSsid(editable.toString());
             notifyListener();
 
         }
+
+    }
+
+    /**
+     * {@link TextWatcher} used to track changes to text controls in this
+     * fragment's layout
+     * 
+     * @author Kirk
+     */
+    private abstract class WifiSettingsTextWatcher implements TextWatcher {
+
+        /**
+         * Handle new value of {@link Editable} control
+         * 
+         * @param editable
+         *            new value of {@link Editable} control
+         * 
+         * @see android.text.TextWatcher#afterTextChanged(android.text.Editable)
+         */
+        @Override
+        public abstract void afterTextChanged(Editable editable);
 
         /**
          * Ignored
@@ -191,8 +235,8 @@ public final class WifiSettingsFragment extends Fragment {
          *      int, int, int)
          */
         @Override
-        public void beforeTextChanged(CharSequence s, int start, int count,
-                int after) {
+        public final void beforeTextChanged(CharSequence s, int start,
+                int count, int after) {
 
             // nothing to do here
 
@@ -202,21 +246,22 @@ public final class WifiSettingsFragment extends Fragment {
          * Ignored
          * 
          * @param s
-         *            ignored
+         *            Ignored
          * 
          * @param start
-         *            ignored
+         *            Ignored
          * 
          * @param before
-         *            ignored
+         *            Ignored
          * 
          * @param count
-         *            ignored
+         *            Ignored
          * 
-         * @see TextWatcher#onTextChanged(CharSequence, int, int, int)
+         * @see android.text.TextWatcher#onTextChanged(java.lang.CharSequence,
+         *      int, int, int)
          */
         @Override
-        public void onTextChanged(CharSequence s, int start, int before,
+        public final void onTextChanged(CharSequence s, int start, int before,
                 int count) {
 
             // nothing to do here
@@ -320,13 +365,12 @@ public final class WifiSettingsFragment extends Fragment {
             View view = inflater.inflate(R.layout.wifi_settings_fragment,
                     container, false);
             ssidText = (EditText) view.findViewById(R.id.ssid_text);
-            passwordText = (EditText) view.findViewById(R.id.password_text);
+            passwordText = (EditText) view.findViewById(R.id.p_text);
             securityGroup = (RadioGroup) view.findViewById(R.id.security_group);
             hiddenCheckBox = (CheckBox) view.findViewById(R.id.hidden_checkbox);
-            updateSettings();
-            WifiSettingsTextWatcher textWatcher = new WifiSettingsTextWatcher();
-            ssidText.addTextChangedListener(textWatcher);
-            passwordText.addTextChangedListener(textWatcher);
+            onSettingsChanged();
+            ssidText.addTextChangedListener(new SsidTextWatcher());
+            passwordText.addTextChangedListener(new PasswordTextWatcher());
             securityGroup
                     .setOnCheckedChangeListener(new SecurityCheckedChangeListener());
             hiddenCheckBox
@@ -355,10 +399,10 @@ public final class WifiSettingsFragment extends Fragment {
     }
 
     /**
-     * Update the state of the UI widgets to match the current wi fi
-     * wifiSettings model state
+     * Update the state of the UI widgets to match the current wi fi settings
+     * model state
      */
-    public void updateSettings() {
+    public void onSettingsChanged() {
 
         // don't queue up a bunch of notifications while updating multiple
         // widgets...
