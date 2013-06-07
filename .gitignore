@@ -8,3 +8,5 @@
 **/libs/*
 lint.xml
 ZxingIntegration/*
+javadoc.xml
+**/doc/*
