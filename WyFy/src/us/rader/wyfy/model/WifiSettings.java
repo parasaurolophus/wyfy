@@ -25,7 +25,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.net.Uri;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
@@ -399,48 +398,28 @@ public final class WifiSettings implements Serializable {
      */
     public boolean getActiveConnection(WifiManager manager) {
 
-        try {
+        WifiInfo info = manager.getConnectionInfo();
 
-            WifiInfo info = manager.getConnectionInfo();
+        if (info != null) {
 
-            if (info != null) {
+            int activeId = info.getNetworkId();
 
-                int activeId = info.getNetworkId();
+            if (activeId != -1) {
 
-                if (activeId != -1) {
+                for (WifiConfiguration configuration : manager
+                        .getConfiguredNetworks()) {
 
-                    for (WifiConfiguration configuration : manager
-                            .getConfiguredNetworks()) {
+                    if (configuration.networkId == activeId) {
 
-                        if (configuration.networkId == activeId) {
+                        return initialize(configuration);
 
-                            return initialize(configuration);
-
-                        }
                     }
                 }
             }
-
-            return false;
-
-        } finally {
-
-            // TODO: putting in a little delay here to allow the UI to settle
-            // down at
-            // launch. otherwise, QrCodeFragment.updateQrCode() is invoked when
-            // it is not yet ready to display its image -- investigate better
-            // ways to deal with this
-            try {
-
-                Thread.sleep(500);
-
-            } catch (InterruptedException e) {
-
-                // ignore this exception
-
-            }
-
         }
+
+        return false;
+
     }
 
     /**
@@ -455,6 +434,12 @@ public final class WifiSettings implements Serializable {
     /**
      * Create the QR code {@link Bitmap}
      * 
+     * @param foregroundColor
+     *            foreground color
+     * 
+     * @param backgroundColor
+     *            background color
+     * 
      * @param size
      *            size of the QR code bitmap to create
      * 
@@ -463,7 +448,8 @@ public final class WifiSettings implements Serializable {
      * @throws WriterException
      *             if a zxing error occurs
      */
-    public Bitmap getQrCode(int size) throws WriterException {
+    public Bitmap getQrCode(int foregroundColor, int backgroundColor, int size)
+            throws WriterException {
 
         QRCodeWriter writer = new QRCodeWriter();
         Map<EncodeHintType, Object> hints = new HashMap<EncodeHintType, Object>();
@@ -477,8 +463,8 @@ public final class WifiSettings implements Serializable {
 
             for (int x = 0; x < bitMatrix.getWidth(); ++x) {
 
-                bitmap.setPixel(x, y, (bitMatrix.get(x, y) ? Color.BLACK
-                        : Color.WHITE));
+                bitmap.setPixel(x, y, (bitMatrix.get(x, y) ? foregroundColor
+                        : backgroundColor));
 
             }
         }

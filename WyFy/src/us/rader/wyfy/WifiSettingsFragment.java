@@ -271,6 +271,30 @@ public final class WifiSettingsFragment extends Fragment {
     }
 
     /**
+     * {@link Bundle} parameter name used to persist state of
+     * {@link WifiSettings#isHidden()} across screen rotations, etc.
+     */
+    private static final String HIDDEN_PARAMETER   = "HIDDEN";  //$NON-NLS-1$
+
+    /**
+     * {@link Bundle} parameter name used to persist state of
+     * {@link WifiSettings#getPassword()} across screen rotations, etc.
+     */
+    private static final String PASSWORD_PARAMETER = "PASSWORD"; //$NON-NLS-1$
+
+    /**
+     * {@link Bundle} parameter name used to persist state of
+     * {@link WifiSettings#getSecurity()} across screen rotations, etc.
+     */
+    private static final String SECURITY_PARAMETER = "SECURITY"; //$NON-NLS-1$
+
+    /**
+     * {@link Bundle} parameter name used to persist state of
+     * {@link WifiSettings#getSsid()} across screen rotations, etc.
+     */
+    private static final String SSID_PARAMETER     = "SSID";    //$NON-NLS-1$
+
+    /**
      * Cache the singleton instance of {@link WifiSettings}
      */
     private static WifiSettings           wifiSettings;
@@ -280,12 +304,6 @@ public final class WifiSettingsFragment extends Fragment {
         wifiSettings = WifiSettings.getInstance();
 
     }
-
-    /**
-     * Turn {@link #notifyListener()} into a no-op while
-     * {@link #delayNotifications} is not 0
-     */
-    private int                           delayNotifications;
 
     /**
      * {@link CheckBox} for a wifi access point with a SSID that isn't broadcast
@@ -314,15 +332,6 @@ public final class WifiSettingsFragment extends Fragment {
     private EditText                      ssidText;
 
     /**
-     * Initialize {@link #delayNotifications}
-     */
-    public WifiSettingsFragment() {
-
-        delayNotifications = 0;
-
-    }
-
-    /**
      * Set the {@link #listener}
      * 
      * @param activity
@@ -336,6 +345,32 @@ public final class WifiSettingsFragment extends Fragment {
         super.onAttach(activity);
         this.listener = (OnWifiSettingsChangedListener) activity;
 
+    }
+
+    /**
+     * Prepare this instance to be displayed
+     * 
+     * @param savedInstanceState
+     *            saved state or <code>null</code>
+     * 
+     * @see android.support.v4.app.Fragment#onCreate(android.os.Bundle)
+     */
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+
+        super.onCreate(savedInstanceState);
+
+        if (savedInstanceState != null) {
+
+            wifiSettings.setSsid(savedInstanceState.getString(SSID_PARAMETER));
+            wifiSettings.setPassword(savedInstanceState
+                    .getString(PASSWORD_PARAMETER));
+            wifiSettings.setHidden(savedInstanceState
+                    .getBoolean(HIDDEN_PARAMETER));
+            wifiSettings.setSecurity((Security) savedInstanceState
+                    .getSerializable(SECURITY_PARAMETER));
+
+        }
     }
 
     /**
@@ -357,32 +392,21 @@ public final class WifiSettingsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
 
-        // don't notify during initialization of UI...
-        delayNotifications += 1;
+        View view = inflater.inflate(R.layout.wifi_settings_fragment,
+                container, false);
+        ssidText = (EditText) view.findViewById(R.id.ssid_text);
+        passwordText = (EditText) view.findViewById(R.id.p_text);
+        securityGroup = (RadioGroup) view.findViewById(R.id.security_group);
+        hiddenCheckBox = (CheckBox) view.findViewById(R.id.hidden_checkbox);
+        onSettingsChanged();
+        ssidText.addTextChangedListener(new SsidTextWatcher());
+        passwordText.addTextChangedListener(new PasswordTextWatcher());
+        securityGroup
+                .setOnCheckedChangeListener(new SecurityCheckedChangeListener());
+        hiddenCheckBox
+                .setOnCheckedChangeListener(new HiddenCheckedChangeListener());
+        return view;
 
-        try {
-
-            View view = inflater.inflate(R.layout.wifi_settings_fragment,
-                    container, false);
-            ssidText = (EditText) view.findViewById(R.id.ssid_text);
-            passwordText = (EditText) view.findViewById(R.id.p_text);
-            securityGroup = (RadioGroup) view.findViewById(R.id.security_group);
-            hiddenCheckBox = (CheckBox) view.findViewById(R.id.hidden_checkbox);
-            onSettingsChanged();
-            ssidText.addTextChangedListener(new SsidTextWatcher());
-            passwordText.addTextChangedListener(new PasswordTextWatcher());
-            securityGroup
-                    .setOnCheckedChangeListener(new SecurityCheckedChangeListener());
-            hiddenCheckBox
-                    .setOnCheckedChangeListener(new HiddenCheckedChangeListener());
-            return view;
-
-        } finally {
-
-            // now that things are set up, enable notifications...
-            delayNotifications -= 1;
-
-        }
     }
 
     /**
@@ -399,45 +423,50 @@ public final class WifiSettingsFragment extends Fragment {
     }
 
     /**
+     * Save the app-specific state of this instance
+     * 
+     * @param outState
+     *            saved state
+     * 
+     * @see android.support.v4.app.Fragment#onSaveInstanceState(android.os.Bundle)
+     */
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+
+        super.onSaveInstanceState(outState);
+        outState.putString(SSID_PARAMETER, wifiSettings.getSsid());
+        outState.putString(PASSWORD_PARAMETER, wifiSettings.getPassword());
+        outState.putBoolean(HIDDEN_PARAMETER, wifiSettings.isHidden());
+        outState.putSerializable(SECURITY_PARAMETER, wifiSettings.getSecurity());
+
+    }
+
+    /**
      * Update the state of the UI widgets to match the current wi fi settings
      * model state
      */
     public void onSettingsChanged() {
 
-        // don't queue up a bunch of notifications while updating multiple
-        // widgets...
-        delayNotifications += 1;
+        ssidText.setText(wifiSettings.getSsid());
+        passwordText.setText(wifiSettings.getPassword());
+        hiddenCheckBox.setChecked(wifiSettings.isHidden());
 
-        try {
+        switch (wifiSettings.getSecurity()) {
 
-            ssidText.setText(wifiSettings.getSsid());
-            passwordText.setText(wifiSettings.getPassword());
-            hiddenCheckBox.setChecked(wifiSettings.isHidden());
+            case WEP:
 
-            switch (wifiSettings.getSecurity()) {
+                securityGroup.check(R.id.wep_radio);
+                break;
 
-                case WEP:
+            case WPA:
 
-                    securityGroup.check(R.id.wep_radio);
-                    break;
+                securityGroup.check(R.id.wpa_radio);
+                break;
 
-                case WPA:
+            default:
 
-                    securityGroup.check(R.id.wpa_radio);
-                    break;
-
-                default:
-
-                    securityGroup.check(R.id.nopass_radio);
-                    break;
-
-            }
-
-        } finally {
-
-            // notify at most once for all of the preceding updates...
-            delayNotifications -= 1;
-            notifyListener();
+                securityGroup.check(R.id.nopass_radio);
+                break;
 
         }
     }
@@ -450,24 +479,12 @@ public final class WifiSettingsFragment extends Fragment {
 
         try {
 
-            if (delayNotifications != 0) {
-
-                Log.i(getClass().getName(),
-                        "noifyListener(): delayNotifications is " //$NON-NLS-1$
-                                + delayNotifications + ", exiting"); //$NON-NLS-1$
-                return;
-
-            }
-
             if (listener == null) {
 
-                Log.i(getClass().getName(),
-                        "noifyListener(): lisetener is null, exiting"); //$NON-NLS-1$
                 return;
 
             }
 
-            Log.i(getClass().getName(), "noifyListener(): notifying listener"); //$NON-NLS-1$
             listener.onWifiSettingsChanged();
 
         } catch (Exception e) {

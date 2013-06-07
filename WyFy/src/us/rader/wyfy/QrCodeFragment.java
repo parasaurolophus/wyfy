@@ -17,11 +17,10 @@ package us.rader.wyfy;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import us.rader.wyfy.model.WifiSettings;
 import us.rader.wyfy.provider.FileProvider;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -29,6 +28,7 @@ import android.graphics.Bitmap.CompressFormat;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -36,6 +36,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.widget.ImageView;
 
 /**
@@ -64,7 +65,7 @@ public final class QrCodeFragment extends Fragment {
          * @return {@link Bitmap} for QR code image or <code>null</code>
          * 
          * @see android.os.AsyncTask#doInBackground(Void...)
-         * @see WifiSettings#getQrCode(int)
+         * @see WifiSettings#getQrCode(int, int, int)
          * @see #onPostExecute(Bitmap)
          */
         @Override
@@ -76,7 +77,8 @@ public final class QrCodeFragment extends Fragment {
 
                 if (size > 0) {
 
-                    return wifiSettings.getQrCode(size);
+                    return wifiSettings.getQrCode(Color.BLACK, Color.WHITE,
+                            size);
 
                 }
 
@@ -164,35 +166,32 @@ public final class QrCodeFragment extends Fragment {
 
         });
 
+        view.getViewTreeObserver().addOnGlobalLayoutListener(
+                new OnGlobalLayoutListener() {
+
+                    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+                    @SuppressWarnings("deprecation")
+                    @Override
+                    public void onGlobalLayout() {
+
+                        if (Build.VERSION.SDK_INT < 16) {
+
+                            getView().getViewTreeObserver()
+                                    .removeGlobalOnLayoutListener(this);
+
+                        } else {
+
+                            getView().getViewTreeObserver()
+                                    .removeOnGlobalLayoutListener(this);
+
+                        }
+
+                        updateQrCode();
+
+                    }
+                });
+
         return view;
-
-    }
-
-    /**
-     * Update the QR code bitmap now that the wifiSettings have, presumably,
-     * been restored and the view is, hopefully, ready
-     * 
-     * @see android.support.v4.app.Fragment#onResume()
-     */
-    @Override
-    public void onResume() {
-
-        super.onResume();
-
-        // TODO: figure out a better way to work around state-management bug in
-        // Android UI classes than using a Timer to delay this initial refresh
-        TimerTask task = new TimerTask() {
-
-            @Override
-            public void run() {
-
-                updateQrCode();
-
-            }
-
-        };
-
-        new Timer().schedule(task, 500);
 
     }
 
@@ -209,7 +208,8 @@ public final class QrCodeFragment extends Fragment {
         try {
 
             FragmentActivity activity = getActivity();
-            Bitmap bitmap = wifiSettings.getQrCode(getQrCodeSize());
+            Bitmap bitmap = wifiSettings.getQrCode(Color.BLACK, Color.WHITE,
+                    getQrCodeSize());
             File file = activity.getFileStreamPath("wyfy_qr.png"); //$NON-NLS-1$
             FileOutputStream stream = activity
                     .openFileOutput(file.getName(), 0);
@@ -260,21 +260,7 @@ public final class QrCodeFragment extends Fragment {
     private int getQrCodeSize() {
 
         View view = getView();
-
-        if (view == null) {
-
-            return 0;
-
-        }
-
         View qrView = view.findViewById(R.id.qr_code_layout);
-
-        if (qrView == null) {
-
-            return 0;
-
-        }
-
         int size = Math.min(qrView.getWidth(), qrView.getHeight());
         return size;
 

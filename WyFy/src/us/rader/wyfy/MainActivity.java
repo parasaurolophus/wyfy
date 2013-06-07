@@ -17,7 +17,6 @@ package us.rader.wyfy;
 
 import us.rader.wyfy.model.WifiSettings;
 import us.rader.wyfy.model.WifiSettings.ConnectionOutcome;
-import us.rader.wyfy.model.WifiSettings.Security;
 import us.rader.wyfy.nfc.ForegroundDispatchActivity;
 import us.rader.wyfy.nfc.NdefReaderActivity;
 import android.app.Activity;
@@ -198,31 +197,7 @@ public final class MainActivity extends FragmentActivity implements
      * {@link Activity#startActivityForResult(Intent, int)} request code when
      * launching {@link WriteTagActivity}
      */
-    public static final int      REQUEST_WRITE_TAG  = 1;
-
-    /**
-     * {@link Bundle} parameter name used to persist state of
-     * {@link WifiSettings#isHidden()} across screen rotations, etc.
-     */
-    private static final String  HIDDEN_PARAMETER   = "HIDDEN";  //$NON-NLS-1$
-
-    /**
-     * {@link Bundle} parameter name used to persist state of
-     * {@link WifiSettings#getPassword()} across screen rotations, etc.
-     */
-    private static final String  PASSWORD_PARAMETER = "PASSWORD"; //$NON-NLS-1$
-
-    /**
-     * {@link Bundle} parameter name used to persist state of
-     * {@link WifiSettings#getSecurity()} across screen rotations, etc.
-     */
-    private static final String  SECURITY_PARAMETER = "SECURITY"; //$NON-NLS-1$
-
-    /**
-     * {@link Bundle} parameter name used to persist state of
-     * {@link WifiSettings#getSsid()} across screen rotations, etc.
-     */
-    private static final String  SSID_PARAMETER     = "SSID";    //$NON-NLS-1$
+    public static final int      REQUEST_WRITE_TAG = 1;
 
     /**
      * Cached singleton instance of {@link WifiSettings}
@@ -307,26 +282,6 @@ public final class MainActivity extends FragmentActivity implements
     }
 
     /**
-     * Save the app-specific state of this instance
-     * 
-     * @param outState
-     *            saved state
-     * 
-     * @see android.support.v4.app.Fragment#onSaveInstanceState(android.os.Bundle)
-     */
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-
-        super.onSaveInstanceState(outState);
-        outState.putString(SSID_PARAMETER, wifiSettings.getSsid());
-        outState.putString(PASSWORD_PARAMETER, wifiSettings.getPassword());
-        outState.putBoolean(HIDDEN_PARAMETER, wifiSettings.isHidden());
-        outState.putSerializable(SECURITY_PARAMETER, wifiSettings.getSecurity());
-        Log.i(getClass().getName(), "instance state saved"); //$NON-NLS-1$
-
-    }
-
-    /**
      * Handle notification that the {@link WifiSettings} model state has been
      * changed by the user
      * 
@@ -399,31 +354,15 @@ public final class MainActivity extends FragmentActivity implements
         super.onCreate(savedInstanceState);
         wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
         setContentView(R.layout.main);
+        setFragments(savedInstanceState);
 
         if (savedInstanceState == null) {
-
-            setFragments(savedInstanceState);
-            Log.i(getClass().getName(),
-                    "initializing instance state asynchronously"); //$NON-NLS-1$
 
             if (!parseIntentData()) {
 
                 new GetActiveConnectionTask().execute();
 
             }
-
-        } else {
-
-            wifiSettings.setSsid(savedInstanceState.getString(SSID_PARAMETER));
-            wifiSettings.setPassword(savedInstanceState
-                    .getString(PASSWORD_PARAMETER));
-            wifiSettings.setHidden(savedInstanceState
-                    .getBoolean(HIDDEN_PARAMETER));
-            wifiSettings.setSecurity((Security) savedInstanceState
-                    .getSerializable(SECURITY_PARAMETER));
-            Log.i(getClass().getName(), "instance state restored"); //$NON-NLS-1$
-            setFragments(savedInstanceState);
-
         }
     }
 

@@ -49,19 +49,10 @@ public abstract class NdefWriterActivity extends NdefReaderActivity {
     /**
      * Create a AAR {@link NdefRecord} for the given {@link Package} name
      * 
-     * <p>
      * Even though AAR records will only be used by devices running ice cream
      * sandwich or later, this method uses API's available since gingerbread mr1
      * to create them. They will be benignly ignored by older devices when
      * reading tags that include them.
-     * </p>
-     * 
-     * <p>
-     * TODO: inferred this format by inspecting some actual AAR records created
-     * using {@link NdefRecord#createApplicationRecord(String)} (that only
-     * became available in ice cream sandwich). Should investigate if there is,
-     * somewhere, an official public specification.
-     * </p>
      * 
      * @param pkg
      *            the {@link Package} name
