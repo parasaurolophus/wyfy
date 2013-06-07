@@ -138,8 +138,8 @@ public final class WifiSettings implements Serializable {
      * @param manager
      *            the {@link WifiManager}
      * 
-     * @param denormalizedSsid
-     *            the denormalized SSID string
+     * @param wrappedSsid
+     *            the SSID string wrapped in double-quotes
      * 
      * @param password
      *            the password string
@@ -149,11 +149,11 @@ public final class WifiSettings implements Serializable {
      * 
      * @return the network id
      */
-    private static int addNetwork(WifiManager manager, String denormalizedSsid,
+    private static int addNetwork(WifiManager manager, String wrappedSsid,
             String password, Security securityProtcol) {
 
         WifiConfiguration config = new WifiConfiguration();
-        config.SSID = denormalizedSsid;
+        config.SSID = wrappedSsid;
         config.allowedKeyManagement.clear();
         config.allowedAuthAlgorithms.set(WifiConfiguration.KeyMgmt.NONE);
         config.allowedGroupCiphers.clear();
@@ -166,7 +166,7 @@ public final class WifiSettings implements Serializable {
 
             case WEP:
 
-                config.wepKeys = new String[] { password };
+                config.wepKeys = new String[] { addQuotes(password) };
 
                 if (password.length() == 10) {
 
@@ -184,7 +184,7 @@ public final class WifiSettings implements Serializable {
 
             case WPA:
 
-                config.preSharedKey = password;
+                config.preSharedKey = addQuotes(password);
                 config.allowedGroupCiphers
                         .set(WifiConfiguration.GroupCipher.CCMP);
 
@@ -202,29 +202,17 @@ public final class WifiSettings implements Serializable {
     }
 
     /**
-     * Remove the first and last character from the given string if they are
-     * double quotes
+     * Wrap the given <code>string</code> in double-quotes
      * 
      * @param string
-     *            the string to unwrap
+     *            the string
      * 
-     * @return the unwrapped string
+     * @return the wrapped string
      */
-    private static String normalize(String string) {
+    private static String addQuotes(String string) {
 
-        if (string == null) {
-
-            return ""; //$NON-NLS-1$
-
-        }
-
-        if (string.startsWith("\"") && string.endsWith("\"")) { //$NON-NLS-1$//$NON-NLS-2$
-
-            return string.substring(1, string.length() - 1);
-
-        }
-
-        return string;
+        return "\"" //$NON-NLS-1$
+                + string + "\""; //$NON-NLS-1$
 
     }
 
@@ -273,6 +261,33 @@ public final class WifiSettings implements Serializable {
         }
 
         return buffer.toString();
+
+    }
+
+    /**
+     * Remove the first and last character from the given string if they are
+     * double quotes
+     * 
+     * @param string
+     *            the string to unwrap
+     * 
+     * @return the unwrapped string
+     */
+    private static String removeQuotes(String string) {
+
+        if (string == null) {
+
+            return ""; //$NON-NLS-1$
+
+        }
+
+        if (string.startsWith("\"") && string.endsWith("\"")) { //$NON-NLS-1$//$NON-NLS-2$
+
+            return string.substring(1, string.length() - 1);
+
+        }
+
+        return string;
 
     }
 
@@ -352,9 +367,11 @@ public final class WifiSettings implements Serializable {
      */
     public ConnectionOutcome connect(WifiManager manager) {
 
+        String wrappedSsid = addQuotes(ssid);
+
         for (WifiConfiguration configuration : manager.getConfiguredNetworks()) {
 
-            if (configuration.SSID.equals(ssid)) {
+            if (configuration.SSID.equals(wrappedSsid)) {
 
                 if (manager.enableNetwork(configuration.networkId, false)) {
 
@@ -367,7 +384,7 @@ public final class WifiSettings implements Serializable {
             }
         }
 
-        int networkId = addNetwork(manager, ssid, password, security);
+        int networkId = addNetwork(manager, wrappedSsid, password, security);
 
         if (networkId == -1) {
 
@@ -503,14 +520,14 @@ public final class WifiSettings implements Serializable {
      */
     public boolean initialize(WifiConfiguration configuration) {
 
-        setSsid(normalize(configuration.SSID));
+        setSsid(removeQuotes(configuration.SSID));
         setHidden(configuration.hiddenSSID);
 
         if ((configuration.preSharedKey != null)
                 && !"".equals(configuration.preSharedKey)) { //$NON-NLS-1$
 
             setSecurity(Security.WPA);
-            setPassword(normalize(configuration.preSharedKey));
+            setPassword(removeQuotes(configuration.preSharedKey));
             return true;
 
         }
@@ -519,7 +536,7 @@ public final class WifiSettings implements Serializable {
                 && (configuration.wepKeys.length > 0)) {
 
             setSecurity(Security.WEP);
-            setPassword(normalize(configuration.wepKeys[0]));
+            setPassword(removeQuotes(configuration.wepKeys[0]));
             return true;
 
         }
