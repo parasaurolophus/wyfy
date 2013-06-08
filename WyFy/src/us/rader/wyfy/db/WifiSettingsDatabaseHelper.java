@@ -90,11 +90,7 @@ public final class WifiSettingsDatabaseHelper extends SQLiteOpenHelper {
      */
     public Cursor getAll(SQLiteDatabase db) {
 
-        String[] columns = {
-                WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SSID,
-                WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_PASSWORD,
-                WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SECURITY,
-                WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_HIDDEN };
+        String[] columns = createColumnsForSelection();
         Cursor cursor = db.query(
                 WiFiSettingsContract.WifiSettingsEntry.TABLE_NAME, columns,
                 null, null, null, null, null);
@@ -251,6 +247,22 @@ public final class WifiSettingsDatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
+     * Return a string array for use with the SQLite API representing all of the
+     * columns of the {@link WiFiSettingsContract.WifiSettingsEntry} table
+     * 
+     * @return column name array
+     */
+    private String[] createColumnsForSelection() {
+
+        return new String[] {
+                WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SSID,
+                WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_PASSWORD,
+                WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SECURITY,
+                WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_HIDDEN };
+
+    }
+
+    /**
      * Insert a new row for the current state of the {@link WifiSettings}
      * singleton
      * 
@@ -284,11 +296,7 @@ public final class WifiSettingsDatabaseHelper extends SQLiteOpenHelper {
 
         WifiSettings settings = WifiSettings.getInstance();
         String ssid = settings.getSsid();
-        String[] columns = {
-                WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SSID,
-                WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_PASSWORD,
-                WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SECURITY,
-                WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_HIDDEN };
+        String[] columns = createColumnsForSelection();
         String selection = WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SSID
                 + " LIKE ?"; //$NON-NLS-1$
         String[] selectionArgs = { ssid };
