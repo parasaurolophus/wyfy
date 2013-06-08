@@ -339,7 +339,7 @@ public final class WifiSettings implements Serializable {
     /**
      * Initialize to default state
      */
-    protected WifiSettings() {
+    private WifiSettings() {
 
         ssid = ""; //$NON-NLS-1$
         password = ""; //$NON-NLS-1$
