@@ -15,9 +15,11 @@
  */
 package us.rader.wyfy;
 
+import us.rader.wyfy.db.WifiSettingsDatabaseHelper;
 import us.rader.wyfy.model.WifiSettings;
 import us.rader.wyfy.model.WifiSettings.Security;
 import android.app.Activity;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
@@ -83,7 +85,7 @@ public final class WifiSettingsFragment extends Fragment {
                 case R.id.hidden_checkbox:
 
                     wifiSettings.setHidden(checked);
-                    notifyListener();
+                    onControlsChanged();
                     break;
 
                 default:
@@ -91,6 +93,63 @@ public final class WifiSettingsFragment extends Fragment {
                     break;
 
             }
+
+        }
+
+    }
+
+    /**
+     * Invoke {@link WifiSettingsDatabaseHelper#lookupPassword()} in a worker
+     * thread, update the UI in the main thread
+     * 
+     * @author Kirk
+     */
+    private class LookupPasswordTask extends AsyncTask<Void, Void, String> {
+
+        /**
+         * Invoke {@link WifiSettingsDatabaseHelper#lookupPassword()} in a
+         * worker thread
+         * 
+         * @param params
+         *            ignored
+         * 
+         * @return value returned by
+         *         {@link WifiSettingsDatabaseHelper#lookupPassword()}
+         * 
+         * @see android.os.AsyncTask#doInBackground(Void...)
+         */
+        @Override
+        protected String doInBackground(Void... params) {
+
+            if (dbHelper == null) {
+
+                return null;
+
+            }
+
+            return dbHelper.lookupPassword();
+
+        }
+
+        /**
+         * Update the UI
+         * 
+         * @param result
+         *            value returned by
+         *            {@link WifiSettingsDatabaseHelper#lookupPassword()}
+         * 
+         * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
+         */
+        @Override
+        protected void onPostExecute(String result) {
+
+            if (result != null) {
+
+                wifiSettings.setPassword(result);
+
+            }
+
+            onModelChanged(false);
 
         }
 
@@ -115,7 +174,7 @@ public final class WifiSettingsFragment extends Fragment {
         public void afterTextChanged(Editable editable) {
 
             wifiSettings.setPassword(editable.toString());
-            notifyListener();
+            onControlsChanged();
 
         }
 
@@ -166,7 +225,7 @@ public final class WifiSettingsFragment extends Fragment {
 
             }
 
-            notifyListener();
+            onControlsChanged();
 
         }
 
@@ -191,7 +250,41 @@ public final class WifiSettingsFragment extends Fragment {
         public void afterTextChanged(Editable editable) {
 
             wifiSettings.setSsid(editable.toString());
-            notifyListener();
+            onControlsChanged();
+
+        }
+
+    }
+
+    /**
+     * Invoke {@link WifiSettingsDatabaseHelper#storeWifiSettings()} in a worker
+     * thread
+     * 
+     * @author Kirk
+     */
+    private class StoreWifiSettingsTask extends AsyncTask<Void, Void, Void> {
+
+        /**
+         * Invoke {@link WifiSettingsDatabaseHelper#storeWifiSettings()} in a
+         * worker thread
+         * 
+         * @param params
+         *            ignored
+         * 
+         * @return <code>null</code>
+         * 
+         * @see android.os.AsyncTask#doInBackground(Void...)
+         */
+        @Override
+        protected Void doInBackground(Void... params) {
+
+            if (dbHelper != null) {
+
+                dbHelper.storeWifiSettings();
+
+            }
+
+            return null;
 
         }
 
@@ -274,25 +367,25 @@ public final class WifiSettingsFragment extends Fragment {
      * {@link Bundle} parameter name used to persist state of
      * {@link WifiSettings#isHidden()} across screen rotations, etc.
      */
-    private static final String HIDDEN_PARAMETER   = "HIDDEN";  //$NON-NLS-1$
+    private static final String           HIDDEN_PARAMETER   = "HIDDEN";  //$NON-NLS-1$
 
     /**
      * {@link Bundle} parameter name used to persist state of
      * {@link WifiSettings#getPassword()} across screen rotations, etc.
      */
-    private static final String PASSWORD_PARAMETER = "PASSWORD"; //$NON-NLS-1$
+    private static final String           PASSWORD_PARAMETER = "PASSWORD"; //$NON-NLS-1$
 
     /**
      * {@link Bundle} parameter name used to persist state of
      * {@link WifiSettings#getSecurity()} across screen rotations, etc.
      */
-    private static final String SECURITY_PARAMETER = "SECURITY"; //$NON-NLS-1$
+    private static final String           SECURITY_PARAMETER = "SECURITY"; //$NON-NLS-1$
 
     /**
      * {@link Bundle} parameter name used to persist state of
      * {@link WifiSettings#getSsid()} across screen rotations, etc.
      */
-    private static final String SSID_PARAMETER     = "SSID";    //$NON-NLS-1$
+    private static final String           SSID_PARAMETER     = "SSID";    //$NON-NLS-1$
 
     /**
      * Cache the singleton instance of {@link WifiSettings}
@@ -304,6 +397,11 @@ public final class WifiSettingsFragment extends Fragment {
         wifiSettings = WifiSettings.getInstance();
 
     }
+
+    /**
+     * {@link WifiSettingsDatabaseHelper}
+     */
+    private WifiSettingsDatabaseHelper    dbHelper;
 
     /**
      * {@link CheckBox} for a wifi access point with a SSID that isn't broadcast
@@ -344,6 +442,7 @@ public final class WifiSettingsFragment extends Fragment {
 
         super.onAttach(activity);
         this.listener = (OnWifiSettingsChangedListener) activity;
+        dbHelper = new WifiSettingsDatabaseHelper(activity);
 
     }
 
@@ -398,7 +497,7 @@ public final class WifiSettingsFragment extends Fragment {
         passwordText = (EditText) view.findViewById(R.id.p_text);
         securityGroup = (RadioGroup) view.findViewById(R.id.security_group);
         hiddenCheckBox = (CheckBox) view.findViewById(R.id.hidden_checkbox);
-        onSettingsChanged();
+        onModelChanged(false);
         ssidText.addTextChangedListener(new SsidTextWatcher());
         passwordText.addTextChangedListener(new PasswordTextWatcher());
         securityGroup
@@ -419,33 +518,34 @@ public final class WifiSettingsFragment extends Fragment {
 
         super.onDetach();
         this.listener = null;
+        dbHelper = null;
 
     }
 
     /**
-     * Save the app-specific state of this instance
+     * Handle notification that the {@link WifiSettings} singleton was
+     * initialized from the active connection
      * 
-     * @param outState
-     *            saved state
-     * 
-     * @see android.support.v4.app.Fragment#onSaveInstanceState(android.os.Bundle)
+     * This attempts to obtain the password from the database before updating
+     * the UI
      */
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
+    public void onInitializedFromActiveConnection() {
 
-        super.onSaveInstanceState(outState);
-        outState.putString(SSID_PARAMETER, wifiSettings.getSsid());
-        outState.putString(PASSWORD_PARAMETER, wifiSettings.getPassword());
-        outState.putBoolean(HIDDEN_PARAMETER, wifiSettings.isHidden());
-        outState.putSerializable(SECURITY_PARAMETER, wifiSettings.getSecurity());
+        new LookupPasswordTask().execute();
 
     }
 
     /**
      * Update the state of the UI widgets to match the current wi fi settings
      * model state
+     * 
+     * @param updateDatabase
+     *            also store the new settings in the database if and only if
+     *            <code>updateDatabase</code> is <code>true</code>
+     * 
+     * @see StoreWifiSettingsTask
      */
-    public void onSettingsChanged() {
+    public void onModelChanged(boolean updateDatabase) {
 
         ssidText.setText(wifiSettings.getSsid());
         passwordText.setText(wifiSettings.getPassword());
@@ -469,15 +569,42 @@ public final class WifiSettingsFragment extends Fragment {
                 break;
 
         }
+
+        if (updateDatabase) {
+
+            new StoreWifiSettingsTask().execute();
+
+        }
+    }
+
+    /**
+     * Save the app-specific state of this instance
+     * 
+     * @param outState
+     *            saved state
+     * 
+     * @see android.support.v4.app.Fragment#onSaveInstanceState(android.os.Bundle)
+     */
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+
+        super.onSaveInstanceState(outState);
+        outState.putString(SSID_PARAMETER, wifiSettings.getSsid());
+        outState.putString(PASSWORD_PARAMETER, wifiSettings.getPassword());
+        outState.putBoolean(HIDDEN_PARAMETER, wifiSettings.isHidden());
+        outState.putSerializable(SECURITY_PARAMETER, wifiSettings.getSecurity());
+
     }
 
     /**
      * Notify {@link #listener} that the wi fi wifiSettings habe been changed by
      * the user
      */
-    private void notifyListener() {
+    private void onControlsChanged() {
 
         try {
+
+            new StoreWifiSettingsTask().execute();
 
             if (listener == null) {
 

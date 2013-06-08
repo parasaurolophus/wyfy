@@ -118,7 +118,7 @@ public final class MainActivity extends FragmentActivity implements
 
             if (wifiSettingsFragment != null) {
 
-                wifiSettingsFragment.onSettingsChanged();
+                wifiSettingsFragment.onModelChanged(true);
 
             }
         }
@@ -186,7 +186,7 @@ public final class MainActivity extends FragmentActivity implements
 
             if (wifiSettingsFragment != null) {
 
-                wifiSettingsFragment.onSettingsChanged();
+                wifiSettingsFragment.onInitializedFromActiveConnection();
 
             }
         }
@@ -429,7 +429,7 @@ public final class MainActivity extends FragmentActivity implements
 
                         if (wifiSettings.parse(uri)) {
 
-                            wifiSettingsFragment.onSettingsChanged();
+                            wifiSettingsFragment.onModelChanged(true);
 
                         } else {
 

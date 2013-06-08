@@ -111,7 +111,7 @@ public final class WifiSettingsDatabaseHelper extends SQLiteOpenHelper {
 
         try {
 
-            Cursor cursor = query(db);
+            Cursor cursor = query(db, null);
 
             try {
 
@@ -123,7 +123,8 @@ public final class WifiSettingsDatabaseHelper extends SQLiteOpenHelper {
 
                 int index = cursor
                         .getColumnIndex(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_PASSWORD);
-                return cursor.getString(index);
+                String password = cursor.getString(index);
+                return password;
 
             } finally {
 
@@ -219,7 +220,11 @@ public final class WifiSettingsDatabaseHelper extends SQLiteOpenHelper {
 
         try {
 
-            Cursor cursor = query(db);
+            WifiSettings settings = WifiSettings.getInstance();
+            String ssid = settings.getSsid();
+            String selection = WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SSID
+                    + " LIKE ?"; //$NON-NLS-1$
+            Cursor cursor = query(db, selection, ssid);
 
             try {
 
@@ -290,16 +295,18 @@ public final class WifiSettingsDatabaseHelper extends SQLiteOpenHelper {
      * @param db
      *            {@link SQLiteDatabase}
      * 
+     * @param selection
+     *            selection SQL parameter
+     * 
+     * @param selectionArgs
+     *            arguments to replace '?' in <code>selection</code>
+     * 
      * @return {@link Cursor}
      */
-    private Cursor query(SQLiteDatabase db) {
+    private Cursor query(SQLiteDatabase db, String selection,
+            String... selectionArgs) {
 
-        WifiSettings settings = WifiSettings.getInstance();
-        String ssid = settings.getSsid();
         String[] columns = createColumnsForSelection();
-        String selection = WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SSID
-                + " LIKE ?"; //$NON-NLS-1$
-        String[] selectionArgs = { ssid };
         Cursor cursor = db.query(
                 WiFiSettingsContract.WifiSettingsEntry.TABLE_NAME, columns,
                 selection, selectionArgs, null, null, null);
