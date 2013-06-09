@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="us.rader.wyfy"
     android:versionCode="22"
     android:versionName="1.22" >
@@ -43,7 +44,7 @@
 
                 <data android:mimeType="application/x-wyfy" />
             </intent-filter>
-            </activity>
+        </activity>
         <activity
             android:name="us.rader.wyfy.WriteTagActivity"
             android:label="@string/title_activity_write_tag"
@@ -52,7 +53,23 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="us.rader.wyfy.MainActivity" />
         </activity>
-        <provider android:name=".provider.FileProvider" android:authorities="@string/provider_authority_file" android:grantUriPermissions="true" android:exported="true"></provider>
+
+        <provider
+            android:name=".provider.FileProvider"
+            android:authorities="@string/provider_authority_file"
+            android:exported="true"
+            android:grantUriPermissions="true"
+            tools:ignore="ExportedContentProvider" >
+        </provider>
+
+        <activity
+            android:name="us.rader.wyfy.DeleteRowsActivity"
+            android:label="@string/title_activity_delete_rows"
+            android:parentActivityName="us.rader.wyfy.MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="us.rader.wyfy.MainActivity" />
+        </activity>
     </application>
 
 </manifest>

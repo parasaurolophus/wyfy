@@ -36,5 +36,9 @@
     <string name="scan_qr_label">Scan QR&#8230;</string>
     <string name="error_scanning_qr_code">Error scanning QR code</string>
     <string name="unsupported_qr_code">Unsupported QR code %1$s</string>
+    <string name="delete_label">Delete</string>
+    <string name="delete_selected_label">Delete Selected</string>
+    <string name="delete_rows_label">Database</string>
+    <string name="title_activity_delete_rows">Database</string>
 
 </resources>

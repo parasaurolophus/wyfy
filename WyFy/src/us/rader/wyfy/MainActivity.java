@@ -231,7 +231,7 @@ public final class MainActivity extends FragmentActivity implements
     private WifiSettingsFragment wifiSettingsFragment;
 
     /**
-     * Inflate the options {link Menu}
+     * Inflate the options {@link Menu}
      * 
      * @param menu
      *            options {@ink Menu}
@@ -259,6 +259,10 @@ public final class MainActivity extends FragmentActivity implements
     public boolean onOptionsItemSelected(MenuItem item) {
 
         switch (item.getItemId()) {
+
+            case R.id.delete_rows_item:
+
+                return deleteRows();
 
             case R.id.write_tag_item:
 
@@ -390,6 +394,19 @@ public final class MainActivity extends FragmentActivity implements
                 });
 
         builder.show();
+
+    }
+
+    /**
+     * Handle "Database" menu item
+     * 
+     * @return <code>true</code>
+     */
+    private boolean deleteRows() {
+
+        Intent intent = new Intent(this, DeleteRowsActivity.class);
+        startActivity(intent);
+        return true;
 
     }
 

@@ -81,24 +81,6 @@ public final class WifiSettingsDatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * Return a {@link Cursor} that iterates over all the rows in the database
-     * 
-     * @param db
-     *            {@link SQLiteDatabase}
-     * 
-     * @return {@link Cursor}
-     */
-    public Cursor getAll(SQLiteDatabase db) {
-
-        String[] columns = createColumnsForSelection();
-        Cursor cursor = db.query(
-                WiFiSettingsContract.WifiSettingsEntry.TABLE_NAME, columns,
-                null, null, null, null, null);
-        return cursor;
-
-    }
-
-    /**
      * Return the password stored in the database for the current value of the
      * {@link WifiSettings} singleton's SSID
      * 
@@ -211,6 +193,37 @@ public final class WifiSettingsDatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
+     * Return a {@link Cursor} for records matching the current
+     * {@link WifiSettings} singleton's SSID
+     * 
+     * This will return an empty {@link Cursor} if no matching row has yet been
+     * added to the database. If this ever returns a {@link Cursor} with more
+     * than one entry, then some data corruption has occured due to a bug
+     * somewhere in the app
+     * 
+     * @param db
+     *            {@link SQLiteDatabase}
+     * 
+     * @param selection
+     *            selection SQL parameter
+     * 
+     * @param selectionArgs
+     *            arguments to replace '?' in <code>selection</code>
+     * 
+     * @return {@link Cursor}
+     */
+    public Cursor query(SQLiteDatabase db, String selection,
+            String... selectionArgs) {
+
+        String[] columns = createColumnsForSelection();
+        Cursor cursor = db.query(
+                WiFiSettingsContract.WifiSettingsEntry.TABLE_NAME, columns,
+                selection, selectionArgs, null, null, null);
+        return cursor;
+
+    }
+
+    /**
      * Update the existing row or insert a new row for the current state of the
      * {@link WifiSettings} singleton
      */
@@ -259,7 +272,7 @@ public final class WifiSettingsDatabaseHelper extends SQLiteOpenHelper {
      */
     private String[] createColumnsForSelection() {
 
-        return new String[] {
+        return new String[] { WiFiSettingsContract.WifiSettingsEntry._ID,
                 WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SSID,
                 WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_PASSWORD,
                 WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SECURITY,
@@ -280,37 +293,6 @@ public final class WifiSettingsDatabaseHelper extends SQLiteOpenHelper {
                 .getContentValues();
         db.insert(WiFiSettingsContract.WifiSettingsEntry.TABLE_NAME,
                 "null", values); //$NON-NLS-1$
-
-    }
-
-    /**
-     * Return a {@link Cursor} for records matching the current
-     * {@link WifiSettings} singleton's SSID
-     * 
-     * This will return an empty {@link Cursor} if no matching row has yet been
-     * added to the database. If this ever returns a {@link Cursor} with more
-     * than one entry, then some data corruption has occured due to a bug
-     * somewhere in the app
-     * 
-     * @param db
-     *            {@link SQLiteDatabase}
-     * 
-     * @param selection
-     *            selection SQL parameter
-     * 
-     * @param selectionArgs
-     *            arguments to replace '?' in <code>selection</code>
-     * 
-     * @return {@link Cursor}
-     */
-    private Cursor query(SQLiteDatabase db, String selection,
-            String... selectionArgs) {
-
-        String[] columns = createColumnsForSelection();
-        Cursor cursor = db.query(
-                WiFiSettingsContract.WifiSettingsEntry.TABLE_NAME, columns,
-                selection, selectionArgs, null, null, null);
-        return cursor;
 
     }
 
