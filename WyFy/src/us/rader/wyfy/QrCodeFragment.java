@@ -260,6 +260,13 @@ public final class QrCodeFragment extends Fragment {
     private int getQrCodeSize() {
 
         View view = getView();
+        
+        if (view == null) {
+            
+            return 0;
+            
+        }
+
         View qrView = view.findViewById(R.id.qr_code_layout);
         int size = Math.min(qrView.getWidth(), qrView.getHeight());
         return size;

@@ -15,6 +15,7 @@
  */
 package us.rader.wyfy;
 
+import us.rader.wyfy.db.WiFiSettingsContract;
 import us.rader.wyfy.model.WifiSettings;
 import us.rader.wyfy.model.WifiSettings.ConnectionOutcome;
 import us.rader.wyfy.nfc.ForegroundDispatchActivity;
@@ -195,9 +196,15 @@ public final class MainActivity extends FragmentActivity implements
 
     /**
      * {@link Activity#startActivityForResult(Intent, int)} request code when
+     * launching {@link SavedRowsActivity}
+     */
+    public static final int      REQUEST_SHOWS_SAVED_DATA = 2;
+
+    /**
+     * {@link Activity#startActivityForResult(Intent, int)} request code when
      * launching {@link WriteTagActivity}
      */
-    public static final int      REQUEST_WRITE_TAG = 1;
+    public static final int      REQUEST_WRITE_TAG        = 1;
 
     /**
      * Cached singleton instance of {@link WifiSettings}
@@ -260,9 +267,9 @@ public final class MainActivity extends FragmentActivity implements
 
         switch (item.getItemId()) {
 
-            case R.id.delete_rows_item:
+            case R.id.show_saved_rows_item:
 
-                return deleteRows();
+                return showSavedRows();
 
             case R.id.write_tag_item:
 
@@ -335,6 +342,11 @@ public final class MainActivity extends FragmentActivity implements
                 onQrCodeScanned(requestCode, resultCode, resultData);
                 break;
 
+            case REQUEST_SHOWS_SAVED_DATA:
+
+                onLoadSavedData(resultCode, resultData);
+                break;
+
             default:
 
                 alert(getString(R.string.unrecognized_request));
@@ -398,16 +410,63 @@ public final class MainActivity extends FragmentActivity implements
     }
 
     /**
-     * Handle "Database" menu item
+     * Load the UI with the result of returned by {@link SavedRowsActivity}
      * 
-     * @return <code>true</code>
+     * @param resultCode
+     *            result code
+     * 
+     * @param resultData
+     *            {@link Intent} containing result data
      */
-    private boolean deleteRows() {
+    private void onLoadSavedData(int resultCode, Intent resultData) {
 
-        Intent intent = new Intent(this, DeleteRowsActivity.class);
-        startActivity(intent);
-        return true;
+        if (resultCode != RESULT_OK) {
 
+            return;
+
+        }
+
+        if (resultData == null) {
+
+            return;
+
+        }
+
+        Uri uri = resultData.getData();
+
+        if (uri == null) {
+
+            return;
+
+        }
+
+        String ssid = uri
+                .getQueryParameter(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SSID);
+
+        if (ssid == null) {
+
+            return;
+
+        }
+
+        String password = uri
+                .getQueryParameter(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_PASSWORD);
+        String hidden = uri
+                .getQueryParameter(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_HIDDEN);
+        String security = uri
+                .getQueryParameter(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SECURITY);
+
+        wifiSettings.setSsid(ssid);
+        wifiSettings.setPassword(password);
+        wifiSettings.setSecurity(Enum.valueOf(WifiSettings.Security.class,
+                security));
+        wifiSettings.setHidden(Boolean.valueOf(hidden));
+
+        if (wifiSettingsFragment != null) {
+
+            wifiSettingsFragment.onModelChanged(false);
+
+        }
     }
 
     /**
@@ -763,6 +822,19 @@ public final class MainActivity extends FragmentActivity implements
             qrCodeFragment.shareQrCode();
 
         }
+    }
+
+    /**
+     * Handle "Database" menu item
+     * 
+     * @return <code>true</code>
+     */
+    private boolean showSavedRows() {
+
+        Intent intent = new Intent(this, SavedRowsActivity.class);
+        startActivityForResult(intent, REQUEST_SHOWS_SAVED_DATA);
+        return true;
+
     }
 
     /**

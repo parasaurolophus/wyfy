@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="us.rader.wyfy"
-    android:versionCode="22"
-    android:versionName="1.22" >
+    android:versionCode="200"
+    android:versionName="2.0" >
 
     <uses-sdk
         android:minSdkVersion="10"
@@ -63,7 +63,7 @@
         </provider>
 
         <activity
-            android:name="us.rader.wyfy.DeleteRowsActivity"
+            android:name="us.rader.wyfy.SavedRowsActivity"
             android:label="@string/title_activity_delete_rows"
             android:parentActivityName="us.rader.wyfy.MainActivity" >
             <meta-data

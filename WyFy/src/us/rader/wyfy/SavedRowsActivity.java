@@ -21,16 +21,16 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 
 /**
- * {@link FragmentActivity} to display {@link DeleteRowsFragment}
+ * {@link FragmentActivity} to display {@link SavedRowsFragment}
  * 
  * @author Kirk
  */
-public class DeleteRowsActivity extends FragmentActivity {
+public class SavedRowsActivity extends FragmentActivity {
 
     /**
-     * {@link DeleteRowsFragment}
+     * {@link SavedRowsFragment}
      */
-    private DeleteRowsFragment deleteRowsFragment;
+    private SavedRowsFragment deleteRowsFragment;
 
     /**
      * @param savedInstanceState
@@ -42,11 +42,11 @@ public class DeleteRowsActivity extends FragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.delete_rows_activity);
+        setContentView(R.layout.saved_rows_activity);
         FragmentManager manager = getSupportFragmentManager();
         FragmentTransaction transaction = manager.beginTransaction();
-        deleteRowsFragment = new DeleteRowsFragment();
-        transaction.add(R.id.delete_rows_activity, deleteRowsFragment);
+        deleteRowsFragment = new SavedRowsFragment();
+        transaction.add(R.id.saved_rows_activity, deleteRowsFragment);
         transaction.commit();
 
     }

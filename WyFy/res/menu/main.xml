@@ -1,5 +1,5 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
-    <item android:id="@+id/delete_rows_item" android:title="@string/delete_rows_label" android:showAsAction="never"></item><item android:id="@+id/scan_qr_item" android:showAsAction="never" android:title="@string/scan_qr_label"></item>
+    <item android:id="@+id/show_saved_rows_item" android:title="@string/saved_label" android:showAsAction="never"></item><item android:id="@+id/scan_qr_item" android:showAsAction="never" android:title="@string/scan_qr_label"></item>
     <item android:id="@+id/share_qr_item" android:title="@string/share_label" android:showAsAction="never"></item><item android:id="@+id/write_tag_item" android:title="@string/write_tag_label" android:showAsAction="never"></item>
     
     
