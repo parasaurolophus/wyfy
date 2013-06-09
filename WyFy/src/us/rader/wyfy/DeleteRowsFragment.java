@@ -22,18 +22,22 @@ import java.util.Map;
 
 import us.rader.wyfy.db.WiFiSettingsContract;
 import us.rader.wyfy.db.WifiSettingsDatabaseHelper;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemLongClickListener;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.SimpleAdapter;
-import android.widget.Toast;
+import android.widget.TextView;
 
 /**
  * UI to delete rows from the database
@@ -135,24 +139,34 @@ public class DeleteRowsFragment extends Fragment {
         @Override
         protected void onPostExecute(List<Map<String, String>> result) {
 
-            String[] from = {
-                    WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_HIDDEN,
-                    WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_PASSWORD,
-                    WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SECURITY,
-                    WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SSID };
-            int[] to = { R.id.hidden_row_text, R.id.password_row_text,
-                    R.id.security_row_text, R.id.ssid_row_text };
-            SimpleAdapter adapter = new SimpleAdapter(getActivity(), result,
-                    R.layout.row_layout, from, to);
+            ArrayList<String> strings = new ArrayList<String>();
+
+            for (Map<String, String> entry : result) {
+
+                String ssid = entry
+                        .get(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SSID);
+                strings.add(ssid);
+
+            }
+
+            ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+                    getActivity(), R.layout.row_layout, R.id.ssid_row_text,
+                    strings);
             allRowsList.setAdapter(adapter);
 
         }
     }
 
     /**
+     * Database selection string to match by SSID
+     */
+    private static final String SELECT_BY_SSID = WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SSID
+                                                       + " LIKE ?"; //$NON-NLS-1$
+
+    /**
      * {@link ListView} to populate with data from all rows in the database
      */
-    private ListView allRowsList;
+    private ListView            allRowsList;
 
     /**
      * Inflate the {@link View}
@@ -178,46 +192,65 @@ public class DeleteRowsFragment extends Fragment {
         View view = inflater.inflate(R.layout.delete_rows_fragment, container,
                 false);
         allRowsList = (ListView) view.findViewById(R.id.rows_list);
+
+        allRowsList.setOnItemLongClickListener(new OnItemLongClickListener() {
+
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view,
+                    int postion, long id) {
+
+                TextView text = (TextView) view
+                        .findViewById(R.id.ssid_row_text);
+                deleteRow(text.getText().toString());
+                return true;
+
+            }
+        });
+
         new QueryTask().execute();
         return view;
 
     }
 
     /**
-     * Handle options {@link MenuItem}
+     * Offer the user the opportunity to delete the specified row from the
+     * database
      * 
-     * @param item
-     *            {@link MenuItem}
-     * 
-     * @return <code>true</code> if and only if the event was consumed
-     * 
-     * @see android.support.v4.app.Fragment#onOptionsItemSelected(android.view.MenuItem)
+     * @param ssid
+     *            the SSID of the entry to delete
      */
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    private void deleteRow(final String ssid) {
 
-        switch (item.getItemId()) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setMessage(getString(R.string.delete_ssid_prompt, ssid));
 
-            case R.id.delete_selected_item:
+        builder.setPositiveButton(android.R.string.yes,
+                new DialogInterface.OnClickListener() {
 
-                deleteRows();
-                return true;
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
 
-            default:
+                        FragmentActivity activity = getActivity();
+                        new WifiSettingsDatabaseHelper(activity).delete(
+                                SELECT_BY_SSID, ssid);
+                        dialog.dismiss();
+                        activity.finish();
 
-                return super.onOptionsItemSelected(item);
+                    }
+                });
 
-        }
+        builder.setNegativeButton(android.R.string.no,
+                new DialogInterface.OnClickListener() {
 
-    }
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
 
-    /**
-     * Delete rows corresponding to checked entries
-     */
-    private void deleteRows() {
+                        dialog.dismiss();
 
-        // TODO: not yet implemented
-        Toast.makeText(getActivity(), "Not yet implemented", Toast.LENGTH_SHORT).show(); //$NON-NLS-1$
+                    }
+                });
+
+        builder.show();
 
     }
 

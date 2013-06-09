@@ -1,115 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/delete_rows_entry"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="@dimen/row_padding"
-    android:showDividers="end" >
+    android:padding="@dimen/row_padding" >
 
-    <TableRow
-        android:id="@+id/tableRow1"
+    <TextView
+        android:id="@+id/ssid_row_text"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+        android:layout_height="wrap_content"
+        android:text="@string/ssid_label"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
 
-        <TextView
-            android:id="@+id/textView1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="@dimen/row_padding"
-            android:text="@string/ssid_label"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
-
-        <TextView
-            android:id="@+id/ssid_row_text"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_weight="2"
-            android:padding="@dimen/row_padding"
-            android:text="@string/ssid_label"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
-
-    </TableRow>
-
-    <TableRow
-        android:id="@+id/TableRow2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
-
-        <TextView
-            android:id="@+id/TextView2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="@dimen/row_padding"
-            android:text="@string/password_label"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
-
-        <TextView
-            android:id="@+id/password_row_text"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_weight="2"
-            android:padding="@dimen/row_padding"
-            android:text="@string/password_label"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
-    </TableRow>
-
-    <TableRow
-        android:id="@+id/TableRow3"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
-
-        <TextView
-            android:id="@+id/TextView3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="@dimen/row_padding"
-            android:text="@string/security_label"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
-
-        <TextView
-            android:id="@+id/security_row_text"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_weight="2"
-            android:padding="@dimen/row_padding"
-            android:text="@string/security_label"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
-    </TableRow>
-
-    <TableRow
-        android:id="@+id/TableRow4"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
-
-        <TextView
-            android:id="@+id/TextView4"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="@dimen/row_padding"
-            android:text="@string/hidden_label"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
-
-        <TextView
-            android:id="@+id/hidden_row_text"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_weight="2"
-            android:padding="@dimen/row_padding"
-            android:text="@string/hidden_label"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
-    </TableRow>
-
-    <TableRow
-        android:id="@+id/TableRow5"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
-
-        <CheckBox
-            android:id="@+id/delete_checkbox"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="3"
-            android:text="@string/delete_label" />
-
-    </TableRow>
-
-</TableLayout>
+</FrameLayout>

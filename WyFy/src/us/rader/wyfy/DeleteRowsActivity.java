@@ -19,8 +19,6 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.view.Menu;
-import android.view.MenuItem;
 
 /**
  * {@link FragmentActivity} to display {@link DeleteRowsFragment}
@@ -33,40 +31,6 @@ public class DeleteRowsActivity extends FragmentActivity {
      * {@link DeleteRowsFragment}
      */
     private DeleteRowsFragment deleteRowsFragment;
-
-    /**
-     * Inflate the options {@link Menu}
-     * 
-     * @param menu
-     *            the options {@link Menu}
-     * 
-     * @see android.support.v4.app.Fragment#onCreateOptionsMenu(android.view.Menu,
-     *      android.view.MenuInflater)
-     */
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-
-        getMenuInflater().inflate(R.menu.delete_rows, menu);
-        return true;
-
-    }
-
-    /**
-     * Handle options {@link MenuItem}
-     * 
-     * @param item
-     *            {@link MenuItem}
-     * 
-     * @return <code>true</code> if and only if the event was consumed
-     * 
-     * @see android.support.v4.app.Fragment#onOptionsItemSelected(android.view.MenuItem)
-     */
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-
-        return deleteRowsFragment.onOptionsItemSelected(item);
-
-    }
 
     /**
      * @param savedInstanceState

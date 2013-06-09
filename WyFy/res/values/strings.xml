@@ -40,5 +40,6 @@
     <string name="delete_selected_label">Delete Selected</string>
     <string name="delete_rows_label">Database</string>
     <string name="title_activity_delete_rows">Database</string>
+    <string name="delete_ssid_prompt">Delete %1$s?</string>
 
 </resources>

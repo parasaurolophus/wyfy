@@ -81,6 +81,32 @@ public final class WifiSettingsDatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
+     * Delete any row(s) matching the given criteria
+     * 
+     * @param selection
+     *            the selection string
+     * 
+     * @param selectionArgs
+     *            string with which to replace '?' variables in
+     *            <code>selection</code>
+     */
+    public void delete(String selection, String... selectionArgs) {
+
+        SQLiteDatabase db = getWritableDatabase();
+
+        try {
+
+            db.delete(WiFiSettingsContract.WifiSettingsEntry.TABLE_NAME,
+                    selection, selectionArgs);
+
+        } finally {
+
+            db.close();
+
+        }
+    }
+
+    /**
      * Return the password stored in the database for the current value of the
      * {@link WifiSettings} singleton's SSID
      * 
