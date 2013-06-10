@@ -22,6 +22,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.provider.BaseColumns;
 
 /**
  * {@link SQLiteOpenHelper} for the WyFy datbase
@@ -51,7 +52,7 @@ public final class WifiSettingsDatabaseHelper extends SQLiteOpenHelper {
     private static final String SQL_CREATE_ENTRIES = "CREATE TABLE " //$NON-NLS-1$
                                                            + WiFiSettingsContract.WifiSettingsEntry.TABLE_NAME
                                                            + " (" //$NON-NLS-1$
-                                                           + WiFiSettingsContract.WifiSettingsEntry._ID
+                                                           + BaseColumns._ID
                                                            + " INTEGER PRIMARY KEY," //$NON-NLS-1$
                                                            + WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SSID
                                                            + " TEXT," //$NON-NLS-1$
@@ -241,7 +242,11 @@ public final class WifiSettingsDatabaseHelper extends SQLiteOpenHelper {
     public Cursor query(SQLiteDatabase db, String selection,
             String... selectionArgs) {
 
-        String[] columns = createColumnsForSelection();
+        String[] columns = new String[] { BaseColumns._ID,
+                WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SSID,
+                WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_PASSWORD,
+                WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SECURITY,
+                WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_HIDDEN };
         Cursor cursor = db.query(
                 WiFiSettingsContract.WifiSettingsEntry.TABLE_NAME, columns,
                 selection, selectionArgs, null, null, null);
@@ -291,22 +296,6 @@ public final class WifiSettingsDatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * Return a string array for use with the SQLite API representing all of the
-     * columns of the {@link WiFiSettingsContract.WifiSettingsEntry} table
-     * 
-     * @return column name array
-     */
-    private String[] createColumnsForSelection() {
-
-        return new String[] { WiFiSettingsContract.WifiSettingsEntry._ID,
-                WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SSID,
-                WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_PASSWORD,
-                WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SECURITY,
-                WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_HIDDEN };
-
-    }
-
-    /**
      * Insert a new row for the current state of the {@link WifiSettings}
      * singleton
      * 
@@ -315,10 +304,9 @@ public final class WifiSettingsDatabaseHelper extends SQLiteOpenHelper {
      */
     private void insert(SQLiteDatabase db) {
 
-        ContentValues values = WiFiSettingsContract.WifiSettingsEntry
-                .getContentValues();
-        db.insert(WiFiSettingsContract.WifiSettingsEntry.TABLE_NAME,
-                "null", values); //$NON-NLS-1$
+        ContentValues values = WifiSettings.getInstance().getContentValues();
+        db.insert(WiFiSettingsContract.WifiSettingsEntry.TABLE_NAME, null,
+                values);
 
     }
 
@@ -331,8 +319,7 @@ public final class WifiSettingsDatabaseHelper extends SQLiteOpenHelper {
      */
     private void update(SQLiteDatabase db) {
 
-        ContentValues values = WiFiSettingsContract.WifiSettingsEntry
-                .getContentValues();
+        ContentValues values = WifiSettings.getInstance().getContentValues();
         String whereClause = WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SSID
                 + " LIKE ?"; //$NON-NLS-1$
         String[] whereArgs = { values

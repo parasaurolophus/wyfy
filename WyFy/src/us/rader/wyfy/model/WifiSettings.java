@@ -15,6 +15,7 @@
  */
 package us.rader.wyfy.model;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,11 +25,14 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import us.rader.wyfy.db.WiFiSettingsContract.WifiSettingsEntry;
+import android.content.ContentValues;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.util.Log;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
@@ -46,8 +50,6 @@ public final class WifiSettings implements Serializable {
 
     /**
      * Enumerated type returned by {@link WifiSettings#connect(WifiManager)}
-     * 
-     * @author Kirk
      */
     public enum ConnectionOutcome {
 
@@ -75,8 +77,6 @@ public final class WifiSettings implements Serializable {
 
     /**
      * Enumeration of supported wifi security protocols
-     * 
-     * @author Kirk
      */
     public enum Security {
 
@@ -103,14 +103,39 @@ public final class WifiSettings implements Serializable {
     }
 
     /**
+     * The empty string
+     */
+    public static final String  EMPTY_STRING        = "";     //$NON-NLS-1$
+
+    /**
+     * Double-quote
+     */
+    private static final String DOUBLE_QUOTE        = "\"";   //$NON-NLS-1$
+
+    /**
      * Serialization version number
      */
-    private static final long   serialVersionUID = 1L;
+    private static final long   serialVersionUID    = 1L;
 
     /**
      * The singleton instance
      */
     private static WifiSettings singleton;
+
+    /**
+     * Scheme for WIFI: URI's
+     */
+    private static final String URI_SCHEME          = "WIFI:"; //$NON-NLS-1$
+
+    /**
+     * T: parameter value for WEP security protocol
+     */
+    private static final String WEP_PARAMETER_VALUE = "WEP";  //$NON-NLS-1$
+
+    /**
+     * T: parameter value for WPA security protocol
+     */
+    private static final String WPA_PARAMETER_VALUE = "WPA";  //$NON-NLS-1$
 
     static {
 
@@ -119,8 +144,6 @@ public final class WifiSettings implements Serializable {
     }
 
     /**
-     * Return {@link #singleton}
-     * 
      * @return {@link #singleton}
      */
     public static WifiSettings getInstance() {
@@ -130,10 +153,10 @@ public final class WifiSettings implements Serializable {
     }
 
     /**
-     * Add the specific item to the list of cofigured WiFi networks
+     * Add the specified entry to the list of configured wi fi networks
      * 
-     * TODO: this makes a lot of assumptions based on a small statistical
-     * sampling of WIFI configurations. need more research!
+     * TODO: this makes a lot of assumptions based on a small sampling of actual
+     * wi fi configurations -- need more research and testing!
      * 
      * @param manager
      *            the {@link WifiManager}
@@ -147,7 +170,9 @@ public final class WifiSettings implements Serializable {
      * @param securityProtcol
      *            the {@link Security} value
      * 
-     * @return the network id
+     * @return the network id or -1 on failure
+     * 
+     * @see #initialize(WifiConfiguration)
      */
     private static int addNetwork(WifiManager manager, String wrappedSsid,
             String password, Security securityProtcol) {
@@ -211,32 +236,53 @@ public final class WifiSettings implements Serializable {
      */
     private static String addQuotes(String string) {
 
-        return "\"" //$NON-NLS-1$
-                + string + "\""; //$NON-NLS-1$
+        return DOUBLE_QUOTE + string + DOUBLE_QUOTE;
 
     }
 
     /**
      * Parse a token that begins with ':' and ends with ';'
      * 
-     * @param reader
-     *            {@link Reader}
+     * <p>
+     * This is used to parse the parameter values from a WIFI: URI, e.g.
+     * S:ssid;P:password; etc.
+     * </p>
      * 
-     * @return the parsed token
+     * <p>
+     * Throws {@link IllegalArgumentException} if the next character in the
+     * stream isn't ':' or if end of input is reached without finding ';'.
+     * Otherwise, it returns the (possibly empty) string containing all of the
+     * characters (if any) after the initial ':' and before the next ';'
+     * </p>
+     * 
+     * <p>
+     * TODO: this will not work correctly if the parameter value itself contains
+     * a literal ';' or white-space characters at the beginning or end -- need
+     * to research the "official" syntax (hard to do for such an ad hoc format)
+     * </p>
+     * 
+     * @param reader
+     *            {@link BufferedReader}
+     * 
+     * @return the parsed token, i.e. everything after the initial ':' and
+     *         before the next ';'
      * 
      * @throws IOException
      *             if an I/O error occurs
      * 
      * @throws IllegalArgumentException
-     *             if the URI is ill-formed
+     *             if the URI is ill-formed, i.e. the next character read from
+     *             the stream isn't ':' or end of input is reached without
+     *             finding ';'
      */
-    private static String parseToken(Reader reader) throws IOException {
+    private static String parseParameterValue(BufferedReader reader)
+            throws IOException {
 
-        int c = reader.read();
+        int c = skipWhitespace(reader);
 
         if (c == -1) {
 
-            throw new IllegalArgumentException("':' expected"); //$NON-NLS-1$
+            throw new IllegalArgumentException("end of input when ':' expected"); //$NON-NLS-1$
 
         }
 
@@ -252,7 +298,8 @@ public final class WifiSettings implements Serializable {
 
             if (c == -1) {
 
-                throw new IllegalArgumentException("';' expected"); //$NON-NLS-1$
+                throw new IllegalArgumentException(
+                        "end of input when ';' expected"); //$NON-NLS-1$
 
             }
 
@@ -260,7 +307,7 @@ public final class WifiSettings implements Serializable {
 
         }
 
-        return buffer.toString();
+        return buffer.toString().trim();
 
     }
 
@@ -277,11 +324,11 @@ public final class WifiSettings implements Serializable {
 
         if (string == null) {
 
-            return ""; //$NON-NLS-1$
+            return EMPTY_STRING;
 
         }
 
-        if (string.startsWith("\"") && string.endsWith("\"")) { //$NON-NLS-1$//$NON-NLS-2$
+        if (string.startsWith(DOUBLE_QUOTE) && string.endsWith(DOUBLE_QUOTE)) {
 
             return string.substring(1, string.length() - 1);
 
@@ -292,20 +339,57 @@ public final class WifiSettings implements Serializable {
     }
 
     /**
-     * Convert a T: URI token to the corresponding {@link Security} constant
+     * Return the next non-white-space character found in the given stream
      * 
-     * @param token
+     * Discards any white-space characters found and marks the position of the
+     * returned character for use by {@link BufferedReader#reset()}
+     * 
+     * @param reader
+     *            {@link BufferedReader}
+     * 
+     * @return the next non-white-space character or -1 if end of input is
+     *         reached
+     * 
+     * @throws IOException
+     *             if an I/O error occurs
+     */
+    private static int skipWhitespace(BufferedReader reader) throws IOException {
+
+        int c;
+
+        do {
+
+            reader.mark(1);
+            c = reader.read();
+
+            if (c == -1) {
+
+                return -1;
+
+            }
+
+        } while (Character.isWhitespace(c));
+
+        return c;
+
+    }
+
+    /**
+     * Convert a T: URI parameter's value to the corresponding {@link Security}
+     * constant
+     * 
+     * @param parameterValue
      *            the token
      * 
      * @return {@link Security}
      */
-    private static Security toSecurity(String token) {
+    private static Security toSecurity(String parameterValue) {
 
-        if ("WEP".equalsIgnoreCase(token)) { //$NON-NLS-1$
+        if (WEP_PARAMETER_VALUE.equalsIgnoreCase(parameterValue)) {
 
             return Security.WEP;
 
-        } else if ("WPA".equalsIgnoreCase(token)) { //$NON-NLS-1$
+        } else if (WPA_PARAMETER_VALUE.equalsIgnoreCase(parameterValue)) {
 
             return Security.WPA;
 
@@ -341,8 +425,8 @@ public final class WifiSettings implements Serializable {
      */
     private WifiSettings() {
 
-        ssid = ""; //$NON-NLS-1$
-        password = ""; //$NON-NLS-1$
+        ssid = EMPTY_STRING;
+        password = EMPTY_STRING;
         security = Security.NONE;
         hidden = false;
 
@@ -351,19 +435,13 @@ public final class WifiSettings implements Serializable {
     /**
      * Activate the WIFI connection represented by this instance
      * 
-     * <p>
-     * This should always be invoked on a worker thread
-     * </p>
-     * 
-     * <p>
-     * TODO: crude implementation; research how this is supposed to work
-     * </p>
+     * This should <code>always</code> be invoked on a worker thread
      * 
      * @param manager
      *            {@link WifiManager}
      * 
      * @return <code>true</code> if and only if the connection was successfully
-     *         activated
+     *         enabled
      */
     public ConnectionOutcome connect(WifiManager manager) {
 
@@ -403,15 +481,23 @@ public final class WifiSettings implements Serializable {
     }
 
     /**
-     * Return a {@link WifiSettings} that reflects the state of the active WIFI
-     * connection, if any
+     * Update this instance to match the state of the active WIFI connection, if
+     * any
      * 
-     * Returns <code>null</code> if there is no active WIFI connection
+     * <p>
+     * This should always be called in a worker thread
+     * </p>
+     * 
+     * <p>
+     * Doesn't change the state of this instance if there is no active wi fi
+     * connection, in which case this method will return <code>false</code>
+     * </p>
      * 
      * @param manager
      *            {@link WifiManager}
      * 
-     * @return {@link WifiSettings} or <code>null</code>
+     * @return <code>true</code> if and only if this instance was updated to
+     *         match the current wi fi connection
      */
     public boolean getActiveConnection(WifiManager manager) {
 
@@ -436,6 +522,25 @@ public final class WifiSettings implements Serializable {
         }
 
         return false;
+
+    }
+
+    /**
+     * Get a {@link ContentValues} to use to persist the state of this instance
+     * 
+     * @return {@link ContentValues}
+     * 
+     * @see WifiSettings#update(ContentValues)
+     */
+    public ContentValues getContentValues() {
+
+        ContentValues values = new ContentValues();
+        values.put(WifiSettingsEntry.COLUMN_NAME_HIDDEN, isHidden());
+        values.put(WifiSettingsEntry.COLUMN_NAME_PASSWORD, getPassword());
+        values.put(WifiSettingsEntry.COLUMN_NAME_SECURITY, getSecurity()
+                .toString());
+        values.put(WifiSettingsEntry.COLUMN_NAME_SSID, getSsid());
+        return values;
 
     }
 
@@ -471,8 +576,9 @@ public final class WifiSettings implements Serializable {
         QRCodeWriter writer = new QRCodeWriter();
         Map<EncodeHintType, Object> hints = new HashMap<EncodeHintType, Object>();
         hints.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.L);
-        BitMatrix bitMatrix = writer.encode(toString(), BarcodeFormat.QR_CODE,
-                size, size, hints);
+        String uri = toString();
+        BitMatrix bitMatrix = writer.encode(uri, BarcodeFormat.QR_CODE, size,
+                size, hints);
         Bitmap bitmap = Bitmap
                 .createBitmap(size, size, Bitmap.Config.ARGB_8888);
 
@@ -509,50 +615,108 @@ public final class WifiSettings implements Serializable {
     }
 
     /**
-     * Initialize this instance from the given {@link WifiConfiguration}
-     * 
-     * TODO: crude implementation; research how this is supposed to work
-     * 
-     * @param configuration
-     *            {@link WifiConfiguration}
-     * 
-     * @return <code>true</code> if successful
-     */
-    public boolean initialize(WifiConfiguration configuration) {
-
-        setSsid(removeQuotes(configuration.SSID));
-        setHidden(configuration.hiddenSSID);
-
-        if ((configuration.preSharedKey != null)
-                && !"".equals(configuration.preSharedKey)) { //$NON-NLS-1$
-
-            setSecurity(Security.WPA);
-            setPassword(removeQuotes(configuration.preSharedKey));
-            return true;
-
-        }
-
-        if ((configuration.wepKeys != null)
-                && (configuration.wepKeys.length > 0)) {
-
-            setSecurity(Security.WEP);
-            setPassword(removeQuotes(configuration.wepKeys[0]));
-            return true;
-
-        }
-
-        setSecurity(Security.NONE);
-        setPassword(""); //$NON-NLS-1$
-        return true;
-
-    }
-
-    /**
      * @return current value of hidden
      */
     public boolean isHidden() {
 
         return hidden;
+
+    }
+
+    /**
+     * Parse WIFI: URI from the given {@link Reader}
+     * 
+     * Note that this doesn't enforce any required parameters (i.e. S:) nor
+     * consistency rules (e.g. missing P: when T: isn't "nopass"), check for
+     * duplicate parameters etc.
+     * 
+     * @param reader
+     *            {@link BufferedReader}
+     * 
+     * @return <code>true</code> if and only if URI was successfully parsed
+     * 
+     * @throws IOException
+     *             if an I/O error occurs
+     */
+    public boolean parse(BufferedReader reader) throws IOException {
+
+        try {
+
+            int c = skipWhitespace(reader);
+
+            if (c == -1) {
+
+                Log.w(getClass().getName(),
+                        "end of input reached while expecting WIFI: URI"); //$NON-NLS-1$
+                return false;
+
+            }
+
+            reader.reset();
+            char[] chars = new char[URI_SCHEME.length()];
+            int actual = reader.read(chars);
+            String prefix = new String(chars, 0, actual);
+
+            if (!URI_SCHEME.equalsIgnoreCase(prefix)) {
+
+                Log.w(getClass().getName(), "URI must start with '" //$NON-NLS-1$
+                        + URI_SCHEME + "' but found '" //$NON-NLS-1$
+                        + prefix + "'"); //$NON-NLS-1$
+                return false;
+
+            }
+
+            while ((c = skipWhitespace(reader)) != ';') {
+
+                if (c == -1) {
+
+                    return false;
+
+                }
+
+                char parameter = Character.toUpperCase((char) c);
+                String token = parseParameterValue(reader);
+
+                switch (parameter) {
+
+                    case 'S':
+
+                        setSsid(token);
+                        break;
+
+                    case 'P':
+
+                        setPassword(token);
+                        break;
+
+                    case 'H':
+
+                        setHidden(Boolean.parseBoolean(token));
+                        break;
+
+                    case 'T':
+
+                        setSecurity(toSecurity(token));
+                        break;
+
+                    default:
+
+                        Log.w(getClass().getName(),
+                                "Unrecognized URI parameter name '" //$NON-NLS-1$
+                                        + parameter + "'"); //$NON-NLS-1$
+                        return false;
+
+                }
+            }
+
+            return true;
+
+        } catch (IllegalArgumentException e) {
+
+            Log.w(getClass().getName(), "parse(BufferedReader)", e); //$NON-NLS-1$
+            return false;
+
+        }
 
     }
 
@@ -567,8 +731,7 @@ public final class WifiSettings implements Serializable {
      * @throws IOException
      *             if an I/O error occurs
      * 
-     * @throws IllegalArgumentException
-     *             if the URI is ill-formed
+     * @see #parse(Reader)
      */
     public boolean parse(InputStream stream) throws IOException {
 
@@ -587,71 +750,11 @@ public final class WifiSettings implements Serializable {
      * @throws IOException
      *             if an I/O error occurs
      * 
-     * @throws IllegalArgumentException
-     *             if the URI is ill-formed
+     * @see #parse(BufferedReader)
      */
     public boolean parse(Reader reader) throws IOException {
 
-        char[] chars = new char[5];
-        int actual = reader.read(chars);
-
-        if (actual != chars.length) {
-
-            return false;
-
-        }
-
-        String prefix = new String(chars);
-
-        if (!"WIFI:".equalsIgnoreCase(prefix)) { //$NON-NLS-1$
-
-            return false;
-
-        }
-
-        int c;
-
-        while ((c = reader.read()) != ';') {
-
-            if (c == -1) {
-
-                return false;
-
-            }
-
-            char parameter = Character.toUpperCase((char) c);
-            String token = parseToken(reader);
-
-            switch (parameter) {
-
-                case 'S':
-
-                    setSsid(token);
-                    break;
-
-                case 'P':
-
-                    setPassword(token);
-                    break;
-
-                case 'H':
-
-                    setHidden(Boolean.parseBoolean(token));
-                    break;
-
-                case 'T':
-
-                    setSecurity(toSecurity(token));
-                    break;
-
-                default:
-
-                    return false;
-
-            }
-        }
-
-        return true;
+        return parse(new BufferedReader(reader));
 
     }
 
@@ -666,8 +769,7 @@ public final class WifiSettings implements Serializable {
      * 
      * @return <code>true</code> if and only if URI was successfully parsed
      * 
-     * @throws IllegalArgumentException
-     *             if the URI is ill-formed
+     * @see #parse(InputStream)
      */
     public boolean parse(String uri) throws IOException {
 
@@ -686,8 +788,7 @@ public final class WifiSettings implements Serializable {
      * @throws IOException
      *             if an I/O error occurs
      * 
-     * @throws IllegalArgumentException
-     *             if the URI is ill-formed
+     * @see #parse(String)
      */
     public boolean parse(Uri uri) throws IOException {
 
@@ -743,7 +844,7 @@ public final class WifiSettings implements Serializable {
     @Override
     public String toString() {
 
-        StringBuffer buffer = new StringBuffer("WIFI:S:"); //$NON-NLS-1$
+        StringBuffer buffer = new StringBuffer(URI_SCHEME + "S:"); //$NON-NLS-1$
         buffer.append(ssid);
         buffer.append(';');
 
@@ -778,6 +879,71 @@ public final class WifiSettings implements Serializable {
 
         buffer.append(';');
         return buffer.toString();
+
+    }
+
+    /**
+     * Update the state of this instance from the given {@link ContentValues}
+     * 
+     * @param values
+     *            {@link ContentValues}
+     * 
+     * @see #getContentValues()
+     */
+    public void update(ContentValues values) {
+
+        String ssid = values.getAsString(WifiSettingsEntry.COLUMN_NAME_SSID);
+        String password = values
+                .getAsString(WifiSettingsEntry.COLUMN_NAME_PASSWORD);
+        Security security = Enum.valueOf(Security.class,
+                values.getAsString(WifiSettingsEntry.COLUMN_NAME_SECURITY));
+        boolean hidden = values
+                .getAsBoolean(WifiSettingsEntry.COLUMN_NAME_HIDDEN);
+        setSsid(ssid);
+        setPassword(password);
+        setSecurity(security);
+        setHidden(hidden);
+
+    }
+
+    /**
+     * Initialize this instance from the given {@link WifiConfiguration}
+     * 
+     * TODO: crude implementation; research how this is supposed to work
+     * 
+     * @param configuration
+     *            {@link WifiConfiguration}
+     * 
+     * @return <code>true</code> if and only if successful
+     * 
+     * @see #addNetwork(WifiManager, String, String, Security)
+     */
+    private boolean initialize(WifiConfiguration configuration) {
+
+        setSsid(removeQuotes(configuration.SSID));
+        setHidden(configuration.hiddenSSID);
+
+        if ((configuration.preSharedKey != null)
+                && !EMPTY_STRING.equals(configuration.preSharedKey)) {
+
+            setSecurity(Security.WPA);
+            setPassword(removeQuotes(configuration.preSharedKey));
+            return true;
+
+        }
+
+        if ((configuration.wepKeys != null)
+                && (configuration.wepKeys.length > 0)) {
+
+            setSecurity(Security.WEP);
+            setPassword(removeQuotes(configuration.wepKeys[0]));
+            return true;
+
+        }
+
+        setSecurity(Security.NONE);
+        setPassword(EMPTY_STRING);
+        return true;
 
     }
 

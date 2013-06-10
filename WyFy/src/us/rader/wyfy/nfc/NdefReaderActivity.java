@@ -45,6 +45,11 @@ public abstract class NdefReaderActivity extends
      * 
      * @return the decoded payload or <code>null</code> if <code>record</code>
      *         isn't supported by this method
+     * 
+     * @see #decodeMime(String, byte[])
+     * @see #decodeText(byte[])
+     * @see #decodeUri(byte[])
+     * @see #decodeWellKnown(String, byte[])
      */
     public static String decodePayload(NdefRecord record) {
 
@@ -60,6 +65,8 @@ public abstract class NdefReaderActivity extends
 
                 case NdefRecord.TNF_ABSOLUTE_URI:
 
+                    // oddly, the URI in such records is in the type field
+                    // rather than the payload for this kind of record
                     return new String(record.getType(), "US-ASCII"); //$NON-NLS-1$
 
                 case NdefRecord.TNF_MIME_MEDIA:
@@ -88,11 +95,12 @@ public abstract class NdefReaderActivity extends
 
     /**
      * Return <code>payload</code> decoded as a UTF-8 string if
-     * <code>type</code> starts with "text/"
+     * <code>type</code> starts with "text/" or is one of a small number of
+     * other known MIME types
      * 
      * <p>
-     * Return <code>null</code> for any MIME type that doesn't start with
-     * "text/"
+     * Return <code>null</code> for any MIME type that isn't supported by this
+     * method
      * </p>
      * 
      * @param type
@@ -106,20 +114,20 @@ public abstract class NdefReaderActivity extends
      * @throws UnsupportedEncodingException
      *             if there is a bug in the Java virtual machine
      */
-    private static String decodeMime(String type, byte[] payload)
+    static private String decodeMime(String type, byte[] payload)
             throws UnsupportedEncodingException {
 
-        if (type.equalsIgnoreCase("application/xml")) { //$NON-NLS-1$
+        if (type.equalsIgnoreCase(MIME_XML)) {
 
             return new String(payload, "UTF-8"); //$NON-NLS-1$
         }
 
-        if (type.equalsIgnoreCase("application/json")) { //$NON-NLS-1$
+        if (type.equalsIgnoreCase(MIME_JSON)) {
 
             return new String(payload, "UTF-8"); //$NON-NLS-1$
         }
 
-        if (type.toLowerCase(Locale.US).startsWith("text/")) { //$NON-NLS-1$
+        if (type.toLowerCase(Locale.US).startsWith(MIME_TEXT_PREFIX)) {
 
             return new String(payload, "UTF-8"); //$NON-NLS-1$
 
@@ -133,8 +141,7 @@ public abstract class NdefReaderActivity extends
      * Decode the <code>payload</code> of a "T" record
      * 
      * <p>
-     * This parses and discards any language-code prefix in the
-     * <code>payload</code>
+     * This discards any language-code prefix in the <code>payload</code>
      * </p>
      * 
      * @param payload
@@ -216,12 +223,12 @@ public abstract class NdefReaderActivity extends
     private static String decodeWellKnown(String type, byte[] payload)
             throws UnsupportedEncodingException {
 
-        if (TYPE_TEXT.equals(type)) {
+        if (RECORD_TYPE_TEXT.equals(type)) {
 
             return decodeText(payload);
         }
 
-        if (TYPE_URI.equals(type)) {
+        if (RECORD_TYPE_URI.equals(type)) {
 
             return decodeUri(payload);
 

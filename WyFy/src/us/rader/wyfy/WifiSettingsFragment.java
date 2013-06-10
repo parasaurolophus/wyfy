@@ -43,8 +43,6 @@ public final class WifiSettingsFragment extends Fragment {
     /**
      * Interface implemented by any {@link Activity} to which this
      * {@link WifiSettingsFragment} may be attached
-     * 
-     * @author Kirk
      */
     public interface OnWifiSettingsChangedListener {
 
@@ -59,8 +57,6 @@ public final class WifiSettingsFragment extends Fragment {
     /**
      * {@link android.widget.CompoundButton.OnCheckedChangeListener} for changes
      * to the state of the checkbox denoting a hidden SSID
-     * 
-     * @author Kirk
      */
     private class HiddenCheckedChangeListener implements
             CompoundButton.OnCheckedChangeListener {
@@ -76,6 +72,7 @@ public final class WifiSettingsFragment extends Fragment {
          * 
          * @see android.widget.CompoundButton.OnCheckedChangeListener#onCheckedChanged(android.widget.CompoundButton,
          *      boolean)
+         * @see WifiSettingsFragment#onControlsChanged(boolean)
          */
         @Override
         public void onCheckedChanged(CompoundButton button, boolean checked) {
@@ -85,7 +82,7 @@ public final class WifiSettingsFragment extends Fragment {
                 case R.id.hidden_checkbox:
 
                     wifiSettings.setHidden(checked);
-                    onControlsChanged();
+                    onControlsChanged(true);
                     break;
 
                 default:
@@ -101,8 +98,6 @@ public final class WifiSettingsFragment extends Fragment {
     /**
      * Invoke {@link WifiSettingsDatabaseHelper#lookupPassword()} in a worker
      * thread, update the UI in the main thread
-     * 
-     * @author Kirk
      */
     private class LookupPasswordTask extends AsyncTask<Void, Void, String> {
 
@@ -157,8 +152,6 @@ public final class WifiSettingsFragment extends Fragment {
 
     /**
      * {@link TextWatcher} for edits to password control
-     * 
-     * @author Kirk
      */
     private final class PasswordTextWatcher extends WifiSettingsTextWatcher {
 
@@ -169,12 +162,13 @@ public final class WifiSettingsFragment extends Fragment {
          *            ignored due to ill-thought out Android API
          * 
          * @see android.text.TextWatcher#afterTextChanged(android.text.Editable)
+         * @see WifiSettingsFragment#onControlsChanged(boolean)
          */
         @Override
         public void afterTextChanged(Editable editable) {
 
             wifiSettings.setPassword(editable.toString());
-            onControlsChanged();
+            onControlsChanged(true);
 
         }
 
@@ -183,8 +177,6 @@ public final class WifiSettingsFragment extends Fragment {
     /**
      * {@Link RadioGroup.OnCheckedChangeListener} used to track selected
      * security protocol
-     * 
-     * @author Kirk
      */
     private class SecurityCheckedChangeListener implements
             RadioGroup.OnCheckedChangeListener {
@@ -202,6 +194,7 @@ public final class WifiSettingsFragment extends Fragment {
          * 
          * @see android.widget.RadioGroup.OnCheckedChangeListener#onCheckedChanged(android
          *      .widget.RadioGroup, int)
+         * @see WifiSettingsFragment#onControlsChanged(boolean)
          */
         @Override
         public void onCheckedChanged(RadioGroup group, int id) {
@@ -225,7 +218,7 @@ public final class WifiSettingsFragment extends Fragment {
 
             }
 
-            onControlsChanged();
+            onControlsChanged(true);
 
         }
 
@@ -233,8 +226,6 @@ public final class WifiSettingsFragment extends Fragment {
 
     /**
      * {@link TextWatcher} for edits to SSID control
-     * 
-     * @author Kirk
      */
     private final class SsidTextWatcher extends WifiSettingsTextWatcher {
 
@@ -245,12 +236,13 @@ public final class WifiSettingsFragment extends Fragment {
          *            ignored due to ill-thought out Android API
          * 
          * @see android.text.TextWatcher#afterTextChanged(android.text.Editable)
+         * @see WifiSettingsFragment#onControlsChanged(boolean)
          */
         @Override
         public void afterTextChanged(Editable editable) {
 
             wifiSettings.setSsid(editable.toString());
-            onControlsChanged();
+            onControlsChanged(false);
 
         }
 
@@ -259,8 +251,6 @@ public final class WifiSettingsFragment extends Fragment {
     /**
      * Invoke {@link WifiSettingsDatabaseHelper#storeWifiSettings()} in a worker
      * thread
-     * 
-     * @author Kirk
      */
     private class StoreWifiSettingsTask extends AsyncTask<Void, Void, Void> {
 
@@ -294,20 +284,13 @@ public final class WifiSettingsFragment extends Fragment {
      * {@link TextWatcher} used to track changes to text controls in this
      * fragment's layout
      * 
-     * @author Kirk
+     * This is just a convenience skeleton to provide implementations of
+     * required methods that aren't needed by this app.
+     * 
+     * @see PasswordTextWatcher
+     * @see SsidTextWatcher
      */
     private abstract class WifiSettingsTextWatcher implements TextWatcher {
-
-        /**
-         * Handle new value of {@link Editable} control
-         * 
-         * @param editable
-         *            new value of {@link Editable} control
-         * 
-         * @see android.text.TextWatcher#afterTextChanged(android.text.Editable)
-         */
-        @Override
-        public abstract void afterTextChanged(Editable editable);
 
         /**
          * Ignored
@@ -328,8 +311,8 @@ public final class WifiSettingsFragment extends Fragment {
          *      int, int, int)
          */
         @Override
-        public final void beforeTextChanged(CharSequence s, int start,
-                int count, int after) {
+        public void beforeTextChanged(CharSequence s, int start, int count,
+                int after) {
 
             // nothing to do here
 
@@ -354,7 +337,7 @@ public final class WifiSettingsFragment extends Fragment {
          *      int, int, int)
          */
         @Override
-        public final void onTextChanged(CharSequence s, int start, int before,
+        public void onTextChanged(CharSequence s, int start, int before,
                 int count) {
 
             // nothing to do here
@@ -599,20 +582,41 @@ public final class WifiSettingsFragment extends Fragment {
     /**
      * Notify {@link #listener} that the wi fi wifiSettings habe been changed by
      * the user
+     * 
+     * <p>
+     * Also update the database if and only if <code>updateDatabase</code> is
+     * <code>true</code>
+     * </p>
+     * 
+     * <p>
+     * This is used as the common helper method by all of the UI widget event
+     * handlers
+     * </p>
+     * 
+     * @param updateDatabase
+     *            update the database, if <code>true</code>
+     * 
+     * @see HiddenCheckedChangeListener#onCheckedChanged(CompoundButton,
+     *      boolean)
+     * @see PasswordTextWatcher#afterTextChanged(Editable)
+     * @see SecurityCheckedChangeListener#onCheckedChanged(RadioGroup, int)
+     * @see SsidTextWatcher#afterTextChanged(Editable)
      */
-    private void onControlsChanged() {
+    private void onControlsChanged(boolean updateDatabase) {
 
         try {
 
-            new StoreWifiSettingsTask().execute();
+            if (updateDatabase) {
 
-            if (listener == null) {
-
-                return;
+                new StoreWifiSettingsTask().execute();
 
             }
 
-            listener.onWifiSettingsChanged();
+            if (listener != null) {
+
+                listener.onWifiSettingsChanged();
+
+            }
 
         } catch (Exception e) {
 

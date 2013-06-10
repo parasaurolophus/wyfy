@@ -16,11 +16,10 @@
 package us.rader.wyfy.db;
 
 import us.rader.wyfy.model.WifiSettings;
-import android.content.ContentValues;
 import android.provider.BaseColumns;
 
 /**
- * SQLlite contract for persisting instances of {@link WifiSettings}
+ * SQLlite contract for persisting {@link WifiSettings}
  * 
  * @author Kirk
  */
@@ -28,8 +27,6 @@ public final class WiFiSettingsContract {
 
     /**
      * Table for storing instances of {@link WifiSettings}
-     * 
-     * @author Kirk
      */
     public static final class WifiSettingsEntry implements BaseColumns {
 
@@ -59,52 +56,7 @@ public final class WiFiSettingsContract {
         public static final String TABLE_NAME           = "wifi_settings"; //$NON-NLS-1$
 
         /**
-         * Get a {@link ContentValues} to use to persist the current state of
-         * the {@link WifiSettings} singleton
-         * 
-         * @return {@link ContentValues}
-         * 
-         * @see #updateWifiSettings(ContentValues)
-         */
-        public static ContentValues getContentValues() {
-
-            WifiSettings settings = WifiSettings.getInstance();
-            ContentValues values = new ContentValues();
-            values.put(COLUMN_NAME_HIDDEN, settings.isHidden());
-            values.put(COLUMN_NAME_PASSWORD, settings.getPassword());
-            values.put(COLUMN_NAME_SECURITY, settings.getSecurity().toString());
-            values.put(COLUMN_NAME_SSID, settings.getSsid());
-            return values;
-
-        }
-
-        /**
-         * Update the state of the singleton {@link WifiSettings} from the given
-         * {@link ContentValues}
-         * 
-         * @param values
-         *            {@link ContentValues}
-         * 
-         * @see #getContentValues()
-         */
-        public static void updateWifiSettings(ContentValues values) {
-
-            String ssid = values.getAsString(COLUMN_NAME_SSID);
-            String password = values.getAsString(COLUMN_NAME_PASSWORD);
-            WifiSettings.Security security = Enum.valueOf(
-                    WifiSettings.Security.class,
-                    values.getAsString(COLUMN_NAME_SECURITY));
-            boolean hidden = values.getAsBoolean(COLUMN_NAME_HIDDEN);
-            WifiSettings settings = WifiSettings.getInstance();
-            settings.setSsid(ssid);
-            settings.setPassword(password);
-            settings.setSecurity(security);
-            settings.setHidden(hidden);
-
-        }
-
-        /**
-         * Prevent casual instantiation of contract member
+         * Prevent casual instantiation of contract member class
          */
         private WifiSettingsEntry() {
 

@@ -25,264 +25,287 @@ import android.nfc.NdefRecord;
 public interface NdefRecordConstants {
 
     /**
+     * MIME type prefix for records whose payload is assumed to be UTF-8 JSON
+     * text
+     * 
+     * @see NdefReaderActivity#decodeMime(String, byte[])
+     */
+    public static final String MIME_JSON             = "application/json";          //$NON-NLS-1$
+
+    /**
+     * MIME type prefix for records whose payload is assumed to be UTF-8 text
+     * 
+     * @see NdefReaderActivity#decodeMime(String, byte[])
+     */
+    public static final String MIME_TEXT_PREFIX      = "text/";                     //$NON-NLS-1$
+
+    /**
+     * MIME type prefix for records whose payload is assumed to be UTF-8 XML
+     * text
+     * 
+     * @see NdefReaderActivity#decodeMime(String, byte[])
+     */
+    public static final String MIME_XML              = "application/xml";           //$NON-NLS-1$
+
+    /**
      * Java string equivalent of {@link NdefRecord#RTD_TEXT}
      */
-    static final String   TYPE_TEXT             = "T";                         //$NON-NLS-1$
+    static final String        RECORD_TYPE_TEXT      = "T";                         //$NON-NLS-1$
 
     /**
      * Java string equivalent of {@link NdefRecord#RTD_URI}
      */
-    static final String   TYPE_URI              = "U";                         //$NON-NLS-1$
+    static final String        RECORD_TYPE_URI       = "U";                         //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 0
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_00         = "";                          //$NON-NLS-1$
+    static final String        URI_PREFIX_00         = "";                          //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 1
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_01         = "http://www.";               //$NON-NLS-1$
+    static final String        URI_PREFIX_01         = "http://www.";               //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 2
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_02         = "https://www.";              //$NON-NLS-1$
+    static final String        URI_PREFIX_02         = "https://www.";              //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 3
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_03         = "http://";                   //$NON-NLS-1$
+    static final String        URI_PREFIX_03         = "http://";                   //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 4
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_04         = "https://";                  //$NON-NLS-1$
+    static final String        URI_PREFIX_04         = "https://";                  //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 5
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_05         = "tel:";                      //$NON-NLS-1$
+    static final String        URI_PREFIX_05         = "tel:";                      //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 6
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_06         = "mailto:";                   //$NON-NLS-1$
+    static final String        URI_PREFIX_06         = "mailto:";                   //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 7
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_07         = "ftp://anonymous:anonymous@"; //$NON-NLS-1$
+    static final String        URI_PREFIX_07         = "ftp://anonymous:anonymous@"; //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 8
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_08         = "ftp://ftp.";                //$NON-NLS-1$
+    static final String        URI_PREFIX_08         = "ftp://ftp.";                //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 9
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_09         = "ftps://";                   //$NON-NLS-1$
+    static final String        URI_PREFIX_09         = "ftps://";                   //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 10
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_10         = "sftp://";                   //$NON-NLS-1$
+    static final String        URI_PREFIX_10         = "sftp://";                   //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 11
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_11         = "smb://";                    //$NON-NLS-1$
+    static final String        URI_PREFIX_11         = "smb://";                    //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 12
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_12         = "nfs://";                    //$NON-NLS-1$
+    static final String        URI_PREFIX_12         = "nfs://";                    //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 13
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_13         = "ftp://";                    //$NON-NLS-1$
+    static final String        URI_PREFIX_13         = "ftp://";                    //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 14
      */
-    static final String   URI_PREFIX_14         = "dav://";                    //$NON-NLS-1$
+    static final String        URI_PREFIX_14         = "dav://";                    //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 15
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_15         = "news:";                     //$NON-NLS-1$
+    static final String        URI_PREFIX_15         = "news:";                     //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 16
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_16         = "telnet://";                 //$NON-NLS-1$
+    static final String        URI_PREFIX_16         = "telnet://";                 //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 17
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_17         = "imap:";                     //$NON-NLS-1$
+    static final String        URI_PREFIX_17         = "imap:";                     //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 18
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_18         = "rtsp://";                   //$NON-NLS-1$
+    static final String        URI_PREFIX_18         = "rtsp://";                   //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 19
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_19         = "urn:";                      //$NON-NLS-1$
+    static final String        URI_PREFIX_19         = "urn:";                      //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 20
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_20         = "pop:";                      //$NON-NLS-1$
+    static final String        URI_PREFIX_20         = "pop:";                      //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 21
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_21         = "sip:";                      //$NON-NLS-1$
+    static final String        URI_PREFIX_21         = "sip:";                      //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 22
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_22         = "sips:";                     //$NON-NLS-1$
+    static final String        URI_PREFIX_22         = "sips:";                     //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 23
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_23         = "tftp:";                     //$NON-NLS-1$
+    static final String        URI_PREFIX_23         = "tftp:";                     //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 24
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_24         = "btspp://";                  //$NON-NLS-1$
+    static final String        URI_PREFIX_24         = "btspp://";                  //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 25
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_25         = "btl2cap://";                //$NON-NLS-1$
+    static final String        URI_PREFIX_25         = "btl2cap://";                //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 26
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_26         = "btgoep://";                 //$NON-NLS-1$
+    static final String        URI_PREFIX_26         = "btgoep://";                 //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 27
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_27         = "tcpobex://";                //$NON-NLS-1$
+    static final String        URI_PREFIX_27         = "tcpobex://";                //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 28
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_28         = "irdaobex://";               //$NON-NLS-1$
+    static final String        URI_PREFIX_28         = "irdaobex://";               //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 29
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_29         = "file://";                   //$NON-NLS-1$
+    static final String        URI_PREFIX_29         = "file://";                   //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 30
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_30         = "urn:epc:id:";               //$NON-NLS-1$
+    static final String        URI_PREFIX_30         = "urn:epc:id:";               //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 31
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_31         = "urn:epc:tag:";              //$NON-NLS-1$
+    static final String        URI_PREFIX_31         = "urn:epc:tag:";              //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 32
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_32         = "urn:epc:pat:";              //$NON-NLS-1$
+    static final String        URI_PREFIX_32         = "urn:epc:pat:";              //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 33
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_33         = "urn:epc:raw:";              //$NON-NLS-1$
+    static final String        URI_PREFIX_33         = "urn:epc:raw:";              //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 34
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_34         = "urn:epc:";                  //$NON-NLS-1$
+    static final String        URI_PREFIX_34         = "urn:epc:";                  //$NON-NLS-1$
 
     /**
      * URI prefix for "U" records with code byte 35
      * 
      * @see #WELL_KNOWN_URI_PREFIX
      */
-    static final String   URI_PREFIX_35         = "urn:nfc:";                  //$NON-NLS-1$
+    static final String        URI_PREFIX_35         = "urn:nfc:";                  //$NON-NLS-1$
 
     /**
      * Strings to prepend to the URI in a NDEF "well known URI" record.
@@ -315,7 +338,7 @@ public interface NdefRecordConstants {
      * in the NDEF format specifcation documents.
      * </p>
      */
-    static final String[] WELL_KNOWN_URI_PREFIX = { URI_PREFIX_00,
+    static final String[]      WELL_KNOWN_URI_PREFIX = { URI_PREFIX_00,
             URI_PREFIX_01, URI_PREFIX_02, URI_PREFIX_03, URI_PREFIX_04,
             URI_PREFIX_05, URI_PREFIX_06, URI_PREFIX_07, URI_PREFIX_08,
             URI_PREFIX_09, URI_PREFIX_10, URI_PREFIX_11, URI_PREFIX_12,

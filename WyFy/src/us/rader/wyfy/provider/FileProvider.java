@@ -20,26 +20,33 @@ package us.rader.wyfy.provider;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 
 /**
- * Simple {@link ContentProvider} to share files without using the deprecated
- * MODE_WORLD_READABLE
+ * Simple {@link ContentProvider} to share files without the deprecated approach
+ * using {@link Context#MODE_WORLD_READABLE} files
  * 
  * @author Kirk
  */
 public final class FileProvider extends ContentProvider {
 
     /**
+     * {@link String}
+     */
+    private static final String        DEFAULT_MIME_TYPE = "application/octet-stream"; //$NON-NLS-1$
+
+    /**
      * Scheme for content a {@link Uri}
      */
-    private static final String        CONTENT_SCHEME = "content://"; //$NON-NLS-1$
+    private static final String        CONTENT_SCHEME    = "content://";              //$NON-NLS-1$
 
     /**
      * Mapping from file name extensions to MIME types for use by
@@ -49,7 +56,7 @@ public final class FileProvider extends ContentProvider {
     /**
      * Separator for {@link Uri} path components
      */
-    private static final String        PATH_SEPARATOR = "/";         //$NON-NLS-1$
+    private static final String        PATH_SEPARATOR    = "/";                       //$NON-NLS-1$
 
     static {
 
@@ -64,6 +71,8 @@ public final class FileProvider extends ContentProvider {
                 "text/html"); //$NON-NLS-1$
         mimeTypes.put(".txt", //$NON-NLS-1$
                 "text/plain"); //$NON-NLS-1$
+        mimeTypes.put(".xml", //$NON-NLS-1$
+                "application/xml"); //$NON-NLS-1$
 
     }
 
@@ -88,6 +97,10 @@ public final class FileProvider extends ContentProvider {
     /**
      * Return the MIME type for the given content {@link Uri}
      * 
+     * This relies on the filename extension in the <code>uri</code>'s path and
+     * the {@link #mimeTypes} map and returns {@link #DEFAULT_MIME_TYPE} if no
+     * match is found
+     * 
      * @param uri
      *            the content {@link Uri}
      * 
@@ -97,7 +110,7 @@ public final class FileProvider extends ContentProvider {
      */
     public static String getMimeType(Uri uri) {
 
-        String name = uri.getPath();
+        String name = uri.getPath().toLowerCase(Locale.US);
 
         for (String extension : mimeTypes.keySet()) {
 
@@ -108,7 +121,7 @@ public final class FileProvider extends ContentProvider {
             }
         }
 
-        return "application/octet-stream"; //$NON-NLS-1$
+        return DEFAULT_MIME_TYPE;
 
     }
 

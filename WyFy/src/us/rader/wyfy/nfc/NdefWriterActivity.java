@@ -27,6 +27,8 @@ import android.nfc.tech.NdefFormatable;
 import android.util.Log;
 
 /**
+ * {@link ForegroundDispatchActivity} that writes a {@link NdefMessage} to a
+ * {@link Tag}
  * 
  * @author Kirk
  */
@@ -49,10 +51,11 @@ public abstract class NdefWriterActivity extends NdefReaderActivity {
     /**
      * Create a AAR {@link NdefRecord} for the given {@link Package} name
      * 
-     * Even though AAR records will only be used by devices running ice cream
-     * sandwich or later, this method uses API's available since gingerbread mr1
-     * to create them. They will be benignly ignored by older devices when
-     * reading tags that include them.
+     * Even though AAR records will only be used by devices running Ice Cream
+     * Sandwich or later, this method uses API's available since Gingerbread MR1
+     * to create them. This allows a single version of an app to run on older
+     * devices but still include AAR records in any tags they write in case
+     * those tags are later read by devices running Ice Cream Sandwich or later
      * 
      * @param pkg
      *            the {@link Package} name
