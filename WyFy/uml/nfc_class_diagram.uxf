@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="12.0">
+  <zoom_level>10</zoom_level>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>340</x>
+      <y>0</y>
+      <w>50</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>30;30;30;90</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>770</x>
+      <y>130</y>
+      <w>540</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>us.rader.wyfy.nfc::ForegroundDispatchActivity.ProcessTagTask
+--
+--
++report(String)
+#doInBackground(Tag... tags) : Parcelable
+#onCancelled()
+#onCancelled(Parcelable result)
+#onPostExecute(Parcelable result)
+#onProgressUpdate(String... messages)
+--</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>770</x>
+      <y>0</y>
+      <w>540</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>android.os::AsyncTask</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>110</x>
+      <y>440</y>
+      <w>540</w>
+      <h>180</h>
+    </coordinates>
+    <panel_attributes>/us.rader.wyfy.nfc::NdefReaderActivity/
+--
+--
+_+decodePayload(NdefRecord record): String_
+_-decodeMime(String type, byte[] payload): String_
+_-decodeText(byte[] payload): String_
+_-decodeUri(byte[] payload): String_
+_-decodeWellKnown(String type, byte[] payload): String_
+#processTag(Tag tag, ProcessTagTask task): NdefMessage
+#NdefReaderActivity(int requestCode): ctor
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>350</x>
+      <y>340</y>
+      <w>50</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>30;30;30;100</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>110</x>
+      <y>690</y>
+      <w>540</w>
+      <h>330</h>
+    </coordinates>
+    <panel_attributes>/us.rader.wyfy.nfc::NdefWriterActivity/
+--
+-writeProtectRequested: boolean
+--
+_+createAar(Package pkg): NdefRecord_
+_+createAar(String pkg): NdefRecord_
+_+createMime(String type, byte[] payload): NdefRecord_
+_+createMime(String type, String payload, String encoding): NdefRecord_
+_+createText(String text): NdefRecord_
+_+createText(String language, String text): NdefRecord_
+_+createUri(String uri): NdefRecord_
+_+createUri(Uri uri): NdefRecord_
++isWriteProtectRequested(): boolean
++setWriteProtectRequested(boolean writeProtectRequested): void
+/#createNdefMessage(NdefMessage currentMessage): NdefMessage/
+#processTag(Tag tag, ProcessTagTask task): NdefMessage
+-writeFormatable(NdefFormatable formatable, ProcessTagTask task): NdefMessage
+-writeNdef(Ndef ndef, ProcessTagTask task): NdefMessage
+#NdefWriterActivity(int requestCode): ctor
+
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>1020</x>
+      <y>0</y>
+      <w>50</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>30;30;30;130</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>350</x>
+      <y>590</y>
+      <w>50</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>30;30;30;100</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>110</x>
+      <y>90</y>
+      <w>540</w>
+      <h>280</h>
+    </coordinates>
+    <panel_attributes>/us.rader.wyfy.nfc::ForegroundDispatchActivity/
+--
+_+EXTRA_RESULT : String_
+_+RESULT_ERROR_PROCESSING_TAG : int_
+-adapter: NfcAdapter
+-filters: IntentFilter[]
+-pendingIntent: PendingIntent
+-requestCode: int
+--
+#onCreate(Bundle savedInstanceState)
+#onNewIntent(Intent intent)
+#onPause()
+#onResume()
+#onTagProcessed(ResultType result, boolean cancelled)
+/#processTag(Tag tag, ProcessTagTask task): Parcelable/
+#ForegroundDispatchActivity(int requestCode)
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>620</x>
+      <y>150</y>
+      <w>170</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+&lt;&lt;executes&gt;&gt;</panel_attributes>
+    <additional_attributes>150;50;30;50</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>620</x>
+      <y>180</y>
+      <w>170</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+&lt;&lt;invokes&gt;&gt;</panel_attributes>
+    <additional_attributes>30;50;150;50</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>110</x>
+      <y>0</y>
+      <w>540</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>android.support.v4.app::FragmentActivity</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.custom.Text</type>
+    <coordinates>
+      <x>710</x>
+      <y>360</y>
+      <w>380</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>ForegroundDispatchActivity's onNewInstance() method
+executes ProcessTagTask such that its processTag()
+method is invoked in a worker thread and the result
+passed to its onTagProcessed() method on the UI thread</panel_attributes>
+    <additional_attributes/>
+  </element>
+</diagram>
