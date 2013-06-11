@@ -259,6 +259,15 @@ public abstract class ForegroundDispatchActivity<ResultType extends Parcelable>
     }
 
     /**
+     * Create the {@link IntentFilter} array to use when foreground dispatch is
+     * enabled
+     * 
+     * @return {@link IntentFilter} that includes filters(s) for the tags and
+     *         technologies supported by the derived class
+     */
+    protected abstract IntentFilter[] createIntentFilters();
+
+    /**
      * Initialize the data structures used in conjunction with foreground
      * dispatch
      * 
@@ -275,11 +284,7 @@ public abstract class ForegroundDispatchActivity<ResultType extends Parcelable>
         Intent intent = new Intent(this, getClass());
         intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         pendingIntent = PendingIntent.getActivity(this, requestCode, intent, 0);
-        IntentFilter ndefFilter = new IntentFilter(
-                NfcAdapter.ACTION_NDEF_DISCOVERED);
-        IntentFilter tagFilter = new IntentFilter(
-                NfcAdapter.ACTION_TAG_DISCOVERED);
-        filters = new IntentFilter[] { ndefFilter, tagFilter };
+        filters = createIntentFilters();
 
     }
 

@@ -19,8 +19,10 @@ import java.io.UnsupportedEncodingException;
 import java.util.Locale;
 
 import us.rader.wyfy.R;
+import android.content.IntentFilter;
 import android.nfc.NdefMessage;
 import android.nfc.NdefRecord;
+import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.nfc.tech.Ndef;
 import android.util.Log;
@@ -251,6 +253,26 @@ public abstract class NdefReaderActivity extends
     protected NdefReaderActivity(int requestCode) {
 
         super(requestCode);
+
+    }
+
+    /**
+     * Create the {@link IntentFilter} array to use when foreground dispatch is
+     * enabled
+     * 
+     * @return {@link IntentFilter} array that selects NDEF formatted and
+     *         unformatted tag
+     * 
+     * @see us.rader.wyfy.nfc.ForegroundDispatchActivity#createIntentFilters()
+     */
+    @Override
+    protected final IntentFilter[] createIntentFilters() {
+
+        IntentFilter ndefFilter = new IntentFilter(
+                NfcAdapter.ACTION_NDEF_DISCOVERED);
+        IntentFilter tagFilter = new IntentFilter(
+                NfcAdapter.ACTION_TAG_DISCOVERED);
+        return new IntentFilter[] { ndefFilter, tagFilter };
 
     }
 
