@@ -237,6 +237,11 @@ public abstract class ForegroundDispatchActivity<ResultType extends Parcelable>
     private PendingIntent      pendingIntent;
 
     /**
+     * {@link ProcessTagTask}
+     */
+    private ProcessTagTask     processTagTask;
+
+    /**
      * Request code to use with {@link #pendingIntent} when enabling foreground
      * dispatch
      * 
@@ -255,6 +260,7 @@ public abstract class ForegroundDispatchActivity<ResultType extends Parcelable>
     protected ForegroundDispatchActivity(int requestCode) {
 
         this.requestCode = requestCode;
+        processTagTask = new ProcessTagTask();
 
     }
 
@@ -304,7 +310,7 @@ public abstract class ForegroundDispatchActivity<ResultType extends Parcelable>
 
         if (tag != null) {
 
-            new ProcessTagTask().execute(tag);
+            processTagTask.execute(tag);
 
         }
     }

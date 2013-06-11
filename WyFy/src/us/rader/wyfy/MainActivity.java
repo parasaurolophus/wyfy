@@ -198,18 +198,18 @@ public final class MainActivity extends FragmentActivity implements
      * {@link Activity#startActivityForResult(Intent, int)} request code when
      * launching {@link SavedRowsActivity}
      */
-    public static final int      REQUEST_SHOWS_SAVED_DATA = 2;
+    public static final int         REQUEST_SHOWS_SAVED_DATA = 2;
 
     /**
      * {@link Activity#startActivityForResult(Intent, int)} request code when
      * launching {@link WriteTagActivity}
      */
-    public static final int      REQUEST_WRITE_TAG        = 1;
+    public static final int         REQUEST_WRITE_TAG        = 1;
 
     /**
      * Cached singleton instance of {@link WifiSettings}
      */
-    private static WifiSettings  wifiSettings;
+    private static WifiSettings     wifiSettings;
 
     static {
 
@@ -218,24 +218,44 @@ public final class MainActivity extends FragmentActivity implements
     }
 
     /**
+     * {@link ConnectTask}
+     */
+    private ConnectTask             connectTask;
+
+    /**
+     * {@link GetActiveConnectionTask}
+     */
+    private GetActiveConnectionTask getActiveConnectionTask;
+
+    /**
      * {@link QrCodeFragment} to notify when the wi fi wifiSettings model state
      * changes
      * 
      * Note that this will be <code>null</code> on devices that display only a
      * single pane
      */
-    private QrCodeFragment       qrCodeFragment;
+    private QrCodeFragment          qrCodeFragment;
 
     /**
      * Cached singleton instance of {@link WifiManager}
      */
-    private WifiManager          wifiManager;
+    private WifiManager             wifiManager;
 
     /**
      * {@link WifiSettingsFragment} to notify when {@link WifiSettings} state
      * changes
      */
-    private WifiSettingsFragment wifiSettingsFragment;
+    private WifiSettingsFragment    wifiSettingsFragment;
+
+    /**
+     * Initialize {@link #getActiveConnectionTask} and {@link #connectTask}
+     */
+    public MainActivity() {
+
+        getActiveConnectionTask = new GetActiveConnectionTask();
+        connectTask = new ConnectTask();
+
+    }
 
     /**
      * Inflate the options {@link Menu}
@@ -376,7 +396,7 @@ public final class MainActivity extends FragmentActivity implements
 
             if (!parseIntentData()) {
 
-                new GetActiveConnectionTask().execute();
+                getActiveConnectionTask.execute();
 
             }
         }
@@ -699,7 +719,7 @@ public final class MainActivity extends FragmentActivity implements
 
             if (wifiSettings.parse(uri)) {
 
-                new ConnectTask().execute();
+                connectTask.execute();
                 return true;
 
             }

@@ -398,6 +398,11 @@ public final class WifiSettingsFragment extends Fragment {
     private OnWifiSettingsChangedListener listener;
 
     /**
+     * {@link LookupPasswordTask}
+     */
+    private LookupPasswordTask            lookupPasswordTask;
+
+    /**
      * {@link EditText} for a wifi access point password string or WEP key
      */
     private EditText                      passwordText;
@@ -411,6 +416,15 @@ public final class WifiSettingsFragment extends Fragment {
      * {@link EditText} for a wifi access point SSID string
      */
     private EditText                      ssidText;
+
+    /**
+     * Initialize {@link #lookupPasswordTask}
+     */
+    public WifiSettingsFragment() {
+
+        lookupPasswordTask = new LookupPasswordTask();
+
+    }
 
     /**
      * Set the {@link #listener}
@@ -514,7 +528,7 @@ public final class WifiSettingsFragment extends Fragment {
      */
     public void onInitializedFromActiveConnection() {
 
-        new LookupPasswordTask().execute();
+        lookupPasswordTask.execute();
 
     }
 

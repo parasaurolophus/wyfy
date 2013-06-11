@@ -39,14 +39,14 @@ import android.os.ParcelFileDescriptor;
 public final class FileProvider extends ContentProvider {
 
     /**
-     * {@link String}
-     */
-    private static final String        DEFAULT_MIME_TYPE = "application/octet-stream"; //$NON-NLS-1$
-
-    /**
      * Scheme for content a {@link Uri}
      */
     private static final String        CONTENT_SCHEME    = "content://";              //$NON-NLS-1$
+
+    /**
+     * {@link String}
+     */
+    private static final String        DEFAULT_MIME_TYPE = "application/octet-stream"; //$NON-NLS-1$
 
     /**
      * Mapping from file name extensions to MIME types for use by
