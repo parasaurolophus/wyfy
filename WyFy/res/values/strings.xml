@@ -39,5 +39,6 @@
     <string name="saved_label">Saved</string>
     <string name="title_activity_delete_rows">Database</string>
     <string name="delete_ssid_prompt">Delete %1$s?</string>
+    <string name="error_processing_tag">Error processing tag</string>
 
 </resources>

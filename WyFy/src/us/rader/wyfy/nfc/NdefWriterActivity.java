@@ -18,9 +18,11 @@ package us.rader.wyfy.nfc;
 import java.io.UnsupportedEncodingException;
 
 import us.rader.wyfy.R;
+import android.content.Intent;
 import android.net.Uri;
 import android.nfc.NdefMessage;
 import android.nfc.NdefRecord;
+import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.nfc.tech.Ndef;
 import android.nfc.tech.NdefFormatable;
@@ -312,29 +314,26 @@ public abstract class NdefWriterActivity extends NdefReaderActivity {
      * Write the value returned by {@link #createNdefMessage(NdefMessage)} to
      * the given {@link Tag}
      * 
-     * @param tag
-     *            the {@link Tag}
-     * 
-     * @param task
-     *            the {@link ForegroundDispatchActivity.ProcessTagTask} running
-     *            this method
+     * @param intent
+     *            the {@link Intent}
      * 
      * @return the {@link NdefMessage} that was written to the {@link Tag} or
      *         <code>null</code>
      * 
-     * @see NdefReaderActivity#processTag(Tag,
-     *      ForegroundDispatchActivity.ProcessTagTask)
+     * @see NdefReaderActivity#processTag(Intent)
      */
     @Override
-    protected final NdefMessage processTag(Tag tag, ProcessTagTask task) {
+    protected final NdefMessage processTag(Intent intent) {
 
         try {
+
+            Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
 
             Ndef ndef = Ndef.get(tag);
 
             if (ndef != null) {
 
-                return writeNdef(ndef, task);
+                return writeNdef(ndef);
 
             }
 
@@ -342,11 +341,11 @@ public abstract class NdefWriterActivity extends NdefReaderActivity {
 
             if (formatable != null) {
 
-                return writeFormatable(formatable, task);
+                return writeFormatable(formatable);
 
             }
 
-            task.report(getString(R.string.incompatible_tag));
+            toast(getString(R.string.incompatible_tag));
             return null;
 
         } catch (Exception e) {
@@ -364,14 +363,9 @@ public abstract class NdefWriterActivity extends NdefReaderActivity {
      * @param formatable
      *            the {@link NdefFormatable} tag
      * 
-     * @param task
-     *            the {@link ForegroundDispatchActivity.ProcessTagTask} running
-     *            this method
-     * 
      * @return the {@link NdefMessage} written to the tag
      */
-    private NdefMessage writeFormatable(NdefFormatable formatable,
-            ProcessTagTask task) {
+    private NdefMessage writeFormatable(NdefFormatable formatable) {
 
         try {
 
@@ -379,7 +373,6 @@ public abstract class NdefWriterActivity extends NdefReaderActivity {
 
             if (ndefMessage == null) {
 
-                task.cancel(false);
                 return null;
 
             }
@@ -409,7 +402,7 @@ public abstract class NdefWriterActivity extends NdefReaderActivity {
         } catch (Exception e) {
 
             Log.e(NdefWriterActivity.class.getName(), "writeFormatable", e); //$NON-NLS-1$
-            task.report(getString(R.string.error_formatting_tag));
+            toast(getString(R.string.error_formatting_tag));
             return null;
 
         }
@@ -422,19 +415,15 @@ public abstract class NdefWriterActivity extends NdefReaderActivity {
      * @param ndef
      *            the {@link Ndef} tag
      * 
-     * @param task
-     *            the {@link ForegroundDispatchActivity.ProcessTagTask} running
-     *            this method
-     * 
      * @return the {@link NdefMessage} written to the tag
      */
-    private NdefMessage writeNdef(Ndef ndef, ProcessTagTask task) {
+    private NdefMessage writeNdef(Ndef ndef) {
 
         try {
 
             if (!ndef.isWritable()) {
 
-                task.report(getString(R.string.read_only_tag));
+                toast(getString(R.string.read_only_tag));
                 return null;
 
             }
@@ -444,7 +433,6 @@ public abstract class NdefWriterActivity extends NdefReaderActivity {
 
             if (ndefMessage == null) {
 
-                task.cancel(false);
                 return null;
 
             }
@@ -454,8 +442,7 @@ public abstract class NdefWriterActivity extends NdefReaderActivity {
 
             if (bytes.length > max) {
 
-                task.report(getString(R.string.tag_size_exceeded, bytes.length,
-                        max));
+                toast(getString(R.string.tag_size_exceeded, bytes.length, max));
                 return null;
 
             }
@@ -470,7 +457,7 @@ public abstract class NdefWriterActivity extends NdefReaderActivity {
 
                     if (!ndef.makeReadOnly()) {
 
-                        task.report(getString(R.string.failed_to_write_protect_tag));
+                        toast(getString(R.string.failed_to_write_protect_tag));
                         return null;
 
                     }
@@ -487,7 +474,7 @@ public abstract class NdefWriterActivity extends NdefReaderActivity {
         } catch (Exception e) {
 
             Log.e(NdefWriterActivity.class.getName(), "writeNdef", e); //$NON-NLS-1$
-            task.report(getString(R.string.error_writing_tag));
+            toast(getString(R.string.error_writing_tag));
             return null;
 
         }

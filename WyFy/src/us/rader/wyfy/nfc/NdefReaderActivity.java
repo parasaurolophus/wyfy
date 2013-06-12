@@ -27,29 +27,34 @@ import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.nfc.tech.Ndef;
+import android.os.Parcelable;
 import android.util.Log;
 
 /**
  * {@link ForegroundDispatchActivity} that extracts a {@link NdefMessage} from a
  * NDEF-compatible {@link Tag}
  * 
+ * Also provides utility methods for parsing the contents of certain kinds of
+ * {@link NdefRecord}
+ * 
  * @author Kirk
+ * 
+ * @see ForegroundDispatchActivity
+ * @see NdefWriterActivity
+ * @see NdefRecordConstants
+ * @see #decodePayload(NdefRecord)
+ * @see #processTag(Intent)
+ * @see #onTagProcessed(NdefMessage)
  */
 public abstract class NdefReaderActivity extends
         ForegroundDispatchActivity<NdefMessage> implements NdefRecordConstants {
 
     /**
      * {@link Intent} extras key used to return the value passed to
-     * {@link #onTagProcessed(NdefMessage, boolean)} to the {@link Activity}
-     * that launched this one
+     * {@link #onTagProcessed(NdefMessage)} to the {@link Activity} that
+     * launched this one
      */
-    public static final String EXTRA_RESULT                = "us.rader.wyfy.nfc.result"; //$NON-NLS-1$
-
-    /**
-     * Result code passed to {@link #setResult(int)} or
-     * {@link #setResult(int, Intent)} to indicate an error
-     */
-    public static final int    RESULT_ERROR_PROCESSING_TAG = RESULT_FIRST_USER;
+    public static final String EXTRA_RESULT = "us.rader.wyfy.nfc.result"; //$NON-NLS-1$
 
     /**
      * Decode the payload of certain kinds of {@link NdefRecord}
@@ -292,29 +297,76 @@ public abstract class NdefReaderActivity extends
     }
 
     /**
+     * Invoke {@link #setResult(int)} or {@link #setResult(int, Intent)}, as
+     * appropriate, and then {@link #finish()}
+     * 
+     * @param result
+     *            the {@link NdefMessage} returned by
+     *            {@link #processTag(Intent)} or <code>null</code>
+     * 
+     * @see ForegroundDispatchActivity#onTagProcessed(Object)
+     */
+    @Override
+    protected void onTagProcessed(NdefMessage result) {
+
+        if (result == null) {
+
+            setResult(RESULT_CANCELED);
+
+        } else {
+
+            Intent intent = new Intent();
+            intent.putExtra(EXTRA_RESULT, result);
+            setResult(RESULT_OK, intent);
+
+        }
+
+        finish();
+
+    }
+
+    /**
      * Extract an {@link NdefMessage} from the given {@link Tag}
      * 
-     * @param tag
-     *            the {@link Tag}
-     * 
-     * @param task
-     *            the {@link ForegroundDispatchActivity.ProcessTagTask} running
-     *            this method
+     * @param intent
+     *            the {@link Intent}
      * 
      * @return the {@link NdefMessage} or <code>null</code> if something goes
      *         wrong
      * 
-     * @see ForegroundDispatchActivity#processTag(android.nfc.Tag,
-     *      ForegroundDispatchActivity.ProcessTagTask)
+     * @see ForegroundDispatchActivity#processTag(Intent)
      */
     @Override
-    protected NdefMessage processTag(Tag tag, ProcessTagTask task) {
+    protected NdefMessage processTag(Intent intent) {
+
+        if (intent == null) {
+
+            return null;
+
+        }
+
+        Parcelable[] ndefMessages = intent
+                .getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
+
+        if ((null != ndefMessages) && (ndefMessages.length > 0)) {
+
+            return (NdefMessage) ndefMessages[0];
+
+        }
+
+        Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+
+        if (tag == null) {
+
+            return null;
+
+        }
 
         Ndef ndef = Ndef.get(tag);
 
         if (ndef == null) {
 
-            task.report(getString(R.string.incompatible_tag));
+            toast(getString(R.string.incompatible_tag));
             return null;
 
         }
@@ -323,99 +375,11 @@ public abstract class NdefReaderActivity extends
 
         if (null == ndefMessage) {
 
-            task.report(getString(R.string.empty_tag));
+            toast(getString(R.string.empty_tag));
 
         }
 
         return ndefMessage;
-
-    }
-
-    /**
-     * Invoke {@link #setResult(int, Intent)} and then {@link #finish()}
-     * 
-     * <p>
-     * The parameters passed to {@link #setResult(int, Intent)} or
-     * {@link #setResult(int)} will be determined as follows:
-     * </p>
-     * 
-     * <table>
-     * 
-     * <tr>
-     * <th><code>result</code></th>
-     * <th><code>cancelled</code></th>
-     * <th>Invoke</th>
-     * </tr>
-     * 
-     * <tr>
-     * <td><code>null</code></td>
-     * <td><code>false</code></td>
-     * <td><code>setResult({@link #RESULT_ERROR_PROCESSING_TAG})</td>
-     * </tr>
-     * 
-     * <tr>
-     * <td><code>null</code></td>
-     * <td><code>true</code></td>
-     * <td><code>setResult({@link #RESULT_CANCELED})</td>
-     * </tr>
-     * 
-     * <tr>
-     * <td>non-<code>null</code></td>
-     * <td><code>false</code></td>
-     * <td><code>setResult({@link #RESULT_OK}, intent)</td>
-     * </tr>
-     * 
-     * <tr>
-     * <td>non-<code>null</code></td>
-     * <td><code>true</code></td>
-     * <td><code>setResult({@link #RESULT_CANCELED}, intent)</td>
-     * </tr>
-     * 
-     * </table>
-     * 
-     * <p>
-     * In each of the cases where an <code>intent</code> is passed to
-     * {@link #setResult(int, Intent)}, <code>result</code> will be passed as a
-     * "parcelable extra" with the key {@link #EXTRA_RESULT}
-     * 
-     * @param result
-     *            the {@link NdefMessage} returned by
-     *            {@link #processTag(Tag, us.rader.wyfy.nfc.ForegroundDispatchActivity.ProcessTagTask)}
-     *            or <code>null</code>
-     * 
-     * @param cancelled
-     *            <code>true</code> if and only if the
-     *            {@link ForegroundDispatchActivity.ProcessTagTask} invoking
-     *            this method was cancelled
-     * 
-     * @see us.rader.wyfy.nfc.ForegroundDispatchActivity#onTagProcessed(java.lang.Object,
-     *      boolean)
-     */
-    @Override
-    protected void onTagProcessed(NdefMessage result, boolean cancelled) {
-
-        int resultCode = (cancelled ? RESULT_CANCELED : RESULT_OK);
-
-        if (result == null) {
-
-            if (resultCode != RESULT_CANCELED) {
-
-                Log.e(getClass().getName(), "result is null but not cancelled"); //$NON-NLS-1$
-                resultCode = RESULT_ERROR_PROCESSING_TAG;
-
-            }
-
-            setResult(resultCode);
-
-        } else {
-
-            Intent intent = new Intent();
-            intent.putExtra(EXTRA_RESULT, result);
-            setResult(resultCode, intent);
-
-        }
-
-        finish();
 
     }
 
