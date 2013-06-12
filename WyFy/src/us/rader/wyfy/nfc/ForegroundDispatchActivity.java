@@ -19,11 +19,11 @@ import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.nfc.NdefMessage;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.widget.Toast;
@@ -32,29 +32,53 @@ import android.widget.Toast;
  * Abstract ancestor for any class of {@link FragmentActivity} that uses the
  * {@link NfcAdapter} foreground dispatch mechanism to read or write NFC tags
  * 
- * Note that <code>ResultType</code> is constrained to extend {@link Parcelable}
- * so that instances can be passed between activities via {@link Intent} extras
+ * @param <ContentType>
+ *            The type returned by {@link #processTag(Tag, ProcessTagTask)} and
+ *            expected by {@link #onTagProcessed(Object, boolean)}; canonically,
+ *            the type of data contained in the kind of {@link Tag} processed by
+ *            the derived class (e.g. {@link NdefMessage}) but that is not
+ *            actually a requirement enforced by this class
  * 
- * @param <ResultType>
- *            The {@link Parcelable} type returned by
- *            {@link #processTag(Tag, ProcessTagTask)} and expected by
- *            {@link #onTagProcessed(Parcelable, boolean)}
- * 
- * @see #onTagProcessed(Parcelable, boolean)
+ * @see #createIntentFilters()
+ * @see #processTag(Tag, ProcessTagTask)
+ * @see #onTagProcessed(Object, boolean)
+ * @see NdefReaderActivity
+ * @see NdefWriterActivity
  * 
  * @author Kirk
  */
-public abstract class ForegroundDispatchActivity<ResultType extends Parcelable>
-        extends FragmentActivity {
+public abstract class ForegroundDispatchActivity<ContentType> extends
+        FragmentActivity {
 
     /**
      * Invoke {@link ForegroundDispatchActivity#processTag(Tag, ProcessTagTask)}
      * on a worker thread,
-     * {@link ForegroundDispatchActivity#onTagProcessed(Parcelable, boolean)} on
-     * the UI thread
+     * {@link ForegroundDispatchActivity#onTagProcessed(Object, boolean)} on the
+     * UI thread
      */
     protected final class ProcessTagTask extends
-            AsyncTask<Tag, String, ResultType> {
+            AsyncTask<Void, String, ContentType> {
+
+        /**
+         * The {@link Tag} to process
+         * 
+         * Note that this is a field rather than an argument to
+         * {@link #doInBackground(Void...)} to emphasize the fact that there is
+         * ever only one {@link Tag} to process at a time
+         */
+        private Tag tag;
+
+        /**
+         * Initialize {@link #tag}
+         * 
+         * @param tag
+         *            value for {@link #tag}
+         */
+        public ProcessTagTask(Tag tag) {
+
+            this.tag = tag;
+
+        }
 
         /**
          * Display the given <code>message</code> to the user
@@ -76,24 +100,24 @@ public abstract class ForegroundDispatchActivity<ResultType extends Parcelable>
          * returns <code>null</code>, this will call {@link #cancel(boolean)}
          * before returning.
          * 
-         * @param tags
-         *            <code>tags[0]</code> is the {@link Tag} to process
+         * @param ignored
+         *            ignored
          * 
          * @return the value returned by
          *         {@link ForegroundDispatchActivity#processTag(Tag, ProcessTagTask)}
          *         or <code><code>null</code> if an error occurs
          * 
          * @see android.os.AsyncTask#doInBackground(Tag...)
-         * @see #onPostExecute(Parcelable)
-         * @see #onCancelled(Parcelable)
+         * @see #onPostExecute(Object)
+         * @see #onCancelled(Object)
          * @see ForegroundDispatchActivity#processTag(Tag, ProcessTagTask)
          */
         @Override
-        protected ResultType doInBackground(Tag... tags) {
+        protected ContentType doInBackground(Void... ignored) {
 
             try {
 
-                ResultType result = processTag(tags[0], this);
+                ContentType result = processTag(tag, this);
 
                 // interpret a null result as equivalent to processTag() having
                 // called cancel()
@@ -114,13 +138,13 @@ public abstract class ForegroundDispatchActivity<ResultType extends Parcelable>
         }
 
         /**
-         * Pass <code>null</code> to {@link #onCancelled(Parcelable)}
+         * Pass <code>null</code> to {@link #onCancelled(Object)}
          * 
          * This override is provided on behalf of devices running versions of
          * Android based on SDK 10 or earlier
          * 
          * @see android.os.AsyncTask#onCancelled()
-         * @see #onCancelled(Parcelable)
+         * @see #onCancelled(Object)
          */
         @Override
         protected void onCancelled() {
@@ -131,7 +155,7 @@ public abstract class ForegroundDispatchActivity<ResultType extends Parcelable>
 
         /**
          * Pass <code>result</code> and <code>true</code> to
-         * {@link ForegroundDispatchActivity#onTagProcessed(Parcelable, boolean)}
+         * {@link ForegroundDispatchActivity#onTagProcessed(Object, boolean)}
          * 
          * Note that the overload of <code>onCancelled</code> that takes a
          * parameter was added in SDK 11, while this code strives to be
@@ -140,13 +164,13 @@ public abstract class ForegroundDispatchActivity<ResultType extends Parcelable>
          * 
          * @param result
          *            the value to pass to
-         *            {@link ForegroundDispatchActivity#onTagProcessed(Parcelable, boolean)}
+         *            {@link ForegroundDispatchActivity#onTagProcessed(Object, boolean)}
          * 
          * @see android.os.AsyncTask#onCancelled(java.lang.Object)
          * @see #onCancelled()
          */
         @Override
-        protected void onCancelled(ResultType result) {
+        protected void onCancelled(ContentType result) {
 
             try {
 
@@ -161,7 +185,7 @@ public abstract class ForegroundDispatchActivity<ResultType extends Parcelable>
 
         /**
          * Pass <code>result</code> and <code>false</code> to
-         * {@link ForegroundDispatchActivity#onTagProcessed(Parcelable, boolean)}
+         * {@link ForegroundDispatchActivity#onTagProcessed(Object, boolean)}
          * 
          * @param result
          *            value returned by
@@ -170,7 +194,7 @@ public abstract class ForegroundDispatchActivity<ResultType extends Parcelable>
          * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
          */
         @Override
-        protected void onPostExecute(ResultType result) {
+        protected void onPostExecute(ContentType result) {
 
             try {
 
@@ -202,44 +226,26 @@ public abstract class ForegroundDispatchActivity<ResultType extends Parcelable>
     }
 
     /**
-     * {@link Intent} extras key used to return the value passed to
-     * {@link #onTagProcessed(Parcelable, boolean)} to the {@link Activity} that
-     * launched this one
-     */
-    public static final String EXTRA_RESULT                = "us.rader.wyfy.nfc.result"; //$NON-NLS-1$
-
-    /**
-     * Result code passed to {@link #setResult(int)} or
-     * {@link #setResult(int, Intent)} to indicate an error
-     */
-    public static final int    RESULT_ERROR_PROCESSING_TAG = RESULT_FIRST_USER;
-
-    /**
      * Cached {@link NfcAdapter}
      * 
      * @see #onPause()
      * @see #onResume()
      */
-    private NfcAdapter         adapter;
+    private NfcAdapter     adapter;
 
     /**
      * Cached {@link IntentFilter} array
      * 
      * @see #onResume()
      */
-    private IntentFilter[]     filters;
+    private IntentFilter[] filters;
 
     /**
      * Cached {@link PendingIntent}
      * 
      * @see #onResume()
      */
-    private PendingIntent      pendingIntent;
-
-    /**
-     * {@link ProcessTagTask}
-     */
-    private ProcessTagTask     processTagTask;
+    private PendingIntent  pendingIntent;
 
     /**
      * Request code to use with {@link #pendingIntent} when enabling foreground
@@ -247,7 +253,7 @@ public abstract class ForegroundDispatchActivity<ResultType extends Parcelable>
      * 
      * @see #onResume()
      */
-    private int                requestCode;
+    private int            requestCode;
 
     /**
      * Initialize {@link #requestCode} to the given value
@@ -260,7 +266,6 @@ public abstract class ForegroundDispatchActivity<ResultType extends Parcelable>
     protected ForegroundDispatchActivity(int requestCode) {
 
         this.requestCode = requestCode;
-        processTagTask = new ProcessTagTask();
 
     }
 
@@ -310,7 +315,7 @@ public abstract class ForegroundDispatchActivity<ResultType extends Parcelable>
 
         if (tag != null) {
 
-            processTagTask.execute(tag);
+            new ProcessTagTask(tag).execute();
 
         }
     }
@@ -400,6 +405,7 @@ public abstract class ForegroundDispatchActivity<ResultType extends Parcelable>
      * @param result
      *            the value returned from
      *            {@link #processTag(Tag, ProcessTagTask)} or <code>null</code>
+     *            if the latter threw an exception
      * 
      * @param cancelled
      *            <code>true</code> if and only if the {@link ProcessTagTask}
@@ -407,32 +413,7 @@ public abstract class ForegroundDispatchActivity<ResultType extends Parcelable>
      * 
      * @see #processTag(Tag, ProcessTagTask)
      */
-    protected void onTagProcessed(ResultType result, boolean cancelled) {
-
-        int resultCode = (cancelled ? RESULT_CANCELED : RESULT_OK);
-
-        if (result == null) {
-
-            if (resultCode != RESULT_CANCELED) {
-
-                Log.e(getClass().getName(), "result is null but not cancelled"); //$NON-NLS-1$
-                resultCode = RESULT_ERROR_PROCESSING_TAG;
-
-            }
-
-            setResult(resultCode);
-
-        } else {
-
-            Intent intent = new Intent();
-            intent.putExtra(EXTRA_RESULT, result);
-            setResult(resultCode, intent);
-
-        }
-
-        finish();
-
-    }
+    protected abstract void onTagProcessed(ContentType result, boolean cancelled);
 
     /**
      * Handle a {@link Tag} detected while foreground dispatch was enabled
@@ -440,21 +421,21 @@ public abstract class ForegroundDispatchActivity<ResultType extends Parcelable>
      * This method can rely on being called in a worker thread. It can use the
      * given <code>task</code> to cancel the worker thread, give feedback to the
      * user etc. The value returned here will be passed on to
-     * {@link #onTagProcessed(Parcelable, boolean)} in the UI thread.
+     * {@link #onTagProcessed(Object, boolean)} in the UI thread.
      * 
      * @param tag
      *            the {@link Tag}
      * 
      * @param task
      *            the {@link ProcessTagTask} whose
-     *            {@link ProcessTagTask#doInBackground(Tag...)} method is
+     *            {@link ProcessTagTask#doInBackground(Void...)} method is
      *            running this method
      * 
      * @return the value to pass as the first parameter to
-     *         {@link #onTagProcessed(Parcelable, boolean)}
+     *         {@link #onTagProcessed(Object, boolean)}
      * 
-     * @see #onTagProcessed(Parcelable, boolean)
+     * @see #onTagProcessed(Object, boolean)
      */
-    protected abstract ResultType processTag(Tag tag, ProcessTagTask task);
+    protected abstract ContentType processTag(Tag tag, ProcessTagTask task);
 
 }

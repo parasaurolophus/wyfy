@@ -19,6 +19,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.Locale;
 
 import us.rader.wyfy.R;
+import android.app.Activity;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.nfc.NdefMessage;
 import android.nfc.NdefRecord;
@@ -29,12 +31,25 @@ import android.util.Log;
 
 /**
  * {@link ForegroundDispatchActivity} that extracts a {@link NdefMessage} from a
- * {@link Tag}
+ * NDEF-compatible {@link Tag}
  * 
  * @author Kirk
  */
 public abstract class NdefReaderActivity extends
         ForegroundDispatchActivity<NdefMessage> implements NdefRecordConstants {
+
+    /**
+     * {@link Intent} extras key used to return the value passed to
+     * {@link #onTagProcessed(NdefMessage, boolean)} to the {@link Activity}
+     * that launched this one
+     */
+    public static final String EXTRA_RESULT                = "us.rader.wyfy.nfc.result"; //$NON-NLS-1$
+
+    /**
+     * Result code passed to {@link #setResult(int)} or
+     * {@link #setResult(int, Intent)} to indicate an error
+     */
+    public static final int    RESULT_ERROR_PROCESSING_TAG = RESULT_FIRST_USER;
 
     /**
      * Decode the payload of certain kinds of {@link NdefRecord}
@@ -313,6 +328,94 @@ public abstract class NdefReaderActivity extends
         }
 
         return ndefMessage;
+
+    }
+
+    /**
+     * Invoke {@link #setResult(int, Intent)} and then {@link #finish()}
+     * 
+     * <p>
+     * The parameters passed to {@link #setResult(int, Intent)} or
+     * {@link #setResult(int)} will be determined as follows:
+     * </p>
+     * 
+     * <table>
+     * 
+     * <tr>
+     * <th><code>result</code></th>
+     * <th><code>cancelled</code></th>
+     * <th>Invoke</th>
+     * </tr>
+     * 
+     * <tr>
+     * <td><code>null</code></td>
+     * <td><code>false</code></td>
+     * <td><code>setResult({@link #RESULT_ERROR_PROCESSING_TAG})</td>
+     * </tr>
+     * 
+     * <tr>
+     * <td><code>null</code></td>
+     * <td><code>true</code></td>
+     * <td><code>setResult({@link #RESULT_CANCELED})</td>
+     * </tr>
+     * 
+     * <tr>
+     * <td>non-<code>null</code></td>
+     * <td><code>false</code></td>
+     * <td><code>setResult({@link #RESULT_OK}, intent)</td>
+     * </tr>
+     * 
+     * <tr>
+     * <td>non-<code>null</code></td>
+     * <td><code>true</code></td>
+     * <td><code>setResult({@link #RESULT_CANCELED}, intent)</td>
+     * </tr>
+     * 
+     * </table>
+     * 
+     * <p>
+     * In each of the cases where an <code>intent</code> is passed to
+     * {@link #setResult(int, Intent)}, <code>result</code> will be passed as a
+     * "parcelable extra" with the key {@link #EXTRA_RESULT}
+     * 
+     * @param result
+     *            the {@link NdefMessage} returned by
+     *            {@link #processTag(Tag, us.rader.wyfy.nfc.ForegroundDispatchActivity.ProcessTagTask)}
+     *            or <code>null</code>
+     * 
+     * @param cancelled
+     *            <code>true</code> if and only if the
+     *            {@link ForegroundDispatchActivity.ProcessTagTask} invoking
+     *            this method was cancelled
+     * 
+     * @see us.rader.wyfy.nfc.ForegroundDispatchActivity#onTagProcessed(java.lang.Object,
+     *      boolean)
+     */
+    @Override
+    protected void onTagProcessed(NdefMessage result, boolean cancelled) {
+
+        int resultCode = (cancelled ? RESULT_CANCELED : RESULT_OK);
+
+        if (result == null) {
+
+            if (resultCode != RESULT_CANCELED) {
+
+                Log.e(getClass().getName(), "result is null but not cancelled"); //$NON-NLS-1$
+                resultCode = RESULT_ERROR_PROCESSING_TAG;
+
+            }
+
+            setResult(resultCode);
+
+        } else {
+
+            Intent intent = new Intent();
+            intent.putExtra(EXTRA_RESULT, result);
+            setResult(resultCode, intent);
+
+        }
+
+        finish();
 
     }
 

@@ -18,7 +18,6 @@ package us.rader.wyfy;
 import us.rader.wyfy.db.WiFiSettingsContract;
 import us.rader.wyfy.model.WifiSettings;
 import us.rader.wyfy.model.WifiSettings.ConnectionOutcome;
-import us.rader.wyfy.nfc.ForegroundDispatchActivity;
 import us.rader.wyfy.nfc.NdefReaderActivity;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -577,7 +576,7 @@ public final class MainActivity extends FragmentActivity implements
             case RESULT_OK:
 
                 NdefMessage message = resultData
-                        .getParcelableExtra(ForegroundDispatchActivity.EXTRA_RESULT);
+                        .getParcelableExtra(NdefReaderActivity.EXTRA_RESULT);
 
                 if (message == null) {
 
@@ -614,6 +613,7 @@ public final class MainActivity extends FragmentActivity implements
             default:
 
                 alert(getString(R.string.unrecognized_result_code, resultCode));
+                break;
 
         }
 
