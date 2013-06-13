@@ -2,103 +2,9 @@
 <diagram program="umlet" version="12.0">
   <zoom_level>10</zoom_level>
   <element>
-    <type>com.umlet.element.Relation</type>
-    <coordinates>
-      <x>490</x>
-      <y>1070</y>
-      <w>50</w>
-      <h>130</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>30;30;30;110</additional_attributes>
-  </element>
-  <element>
     <type>com.umlet.element.Class</type>
     <coordinates>
-      <x>280</x>
-      <y>1180</y>
-      <w>500</w>
-      <h>180</h>
-    </coordinates>
-    <panel_attributes>us.rader.wyfy::WriteTagActivity
---
--uri: Uri
---
-+WriteTagActivity(): ctor
-+onCreateOptionsMenu(Menu menu): boolean
-+onOptionsItemSelected(MenuItem item): boolean
-#createNdefMessage(NdefMessage currentMessage): NdefMessage
-#onCreate(Bundle savedInstanceState): void
--setupActionBar(): void
---
-</panel_attributes>
-    <additional_attributes/>
-  </element>
-  <element>
-    <type>com.umlet.element.Relation</type>
-    <coordinates>
-      <x>500</x>
-      <y>650</y>
-      <w>50</w>
-      <h>140</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>30;30;30;120</additional_attributes>
-  </element>
-  <element>
-    <type>com.umlet.element.Class</type>
-    <coordinates>
-      <x>280</x>
-      <y>0</y>
-      <w>500</w>
-      <h>30</h>
-    </coordinates>
-    <panel_attributes>android.support.v4.app::FragmentActivity</panel_attributes>
-    <additional_attributes/>
-  </element>
-  <element>
-    <type>com.umlet.element.Class</type>
-    <coordinates>
-      <x>280</x>
-      <y>90</y>
-      <w>500</w>
-      <h>280</h>
-    </coordinates>
-    <panel_attributes>/us.rader.wyfy.nfc::ForegroundDispatchActivity/
---
--adapter: NfcAdapter
--filters: IntentFilter[]
--pendingIntent: PendingIntent
--requestCode: int
---
-#ForegroundDispatchActivity(int requestCode): ctor
-/#createIntentFilters(): IntentFilter[]/
-#onCreate(Bundle savedInstanceState): void
-#onNewIntent(Intent intent): void
-#onPause(): void
-#onResume(): void
-/#onTagProcessed(ContentType result): void/
-/#processTag(Intent intent): ContentType/
-#toast(final String message): void
---
-</panel_attributes>
-    <additional_attributes/>
-  </element>
-  <element>
-    <type>com.umlet.element.Relation</type>
-    <coordinates>
-      <x>500</x>
-      <y>340</y>
-      <w>50</w>
-      <h>130</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>30;30;30;110</additional_attributes>
-  </element>
-  <element>
-    <type>com.umlet.element.Class</type>
-    <coordinates>
-      <x>280</x>
+      <x>50</x>
       <y>770</y>
       <w>500</w>
       <h>330</h>
@@ -129,7 +35,7 @@ _+createUri(Uri uri): NdefRecord_
   <element>
     <type>com.umlet.element.Class</type>
     <coordinates>
-      <x>280</x>
+      <x>50</x>
       <y>450</y>
       <w>500</w>
       <h>230</h>
@@ -152,14 +58,157 @@ _-decodeWellKnown(String type, byte[] payload): String_
     <additional_attributes/>
   </element>
   <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>710</x>
+      <y>1240</y>
+      <w>610</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>us.rader.wyfy::WriteTagFragment
+--
+--
++onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState): View
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
     <type>com.umlet.element.Relation</type>
     <coordinates>
-      <x>500</x>
+      <x>270</x>
+      <y>650</y>
+      <w>50</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>30;30;30;120</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>50</x>
+      <y>90</y>
+      <w>500</w>
+      <h>280</h>
+    </coordinates>
+    <panel_attributes>/us.rader.wyfy.nfc::ForegroundDispatchActivity/
+--
+-adapter: NfcAdapter
+-filters: IntentFilter[]
+-pendingIntent: PendingIntent
+-requestCode: int
+--
+#ForegroundDispatchActivity(int requestCode): ctor
+/#createIntentFilters(): IntentFilter[]/
+#onCreate(Bundle savedInstanceState): void
+#onNewIntent(Intent intent): void
+#onPause(): void
+#onResume(): void
+/#onTagProcessed(ContentType result): void/
+/#processTag(Intent intent): ContentType/
+#toast(final String message): void
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>260</x>
+      <y>1070</y>
+      <w>50</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>30;30;30;110</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>270</x>
+      <y>340</y>
+      <w>50</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>30;30;30;110</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>270</x>
       <y>0</y>
       <w>50</w>
       <h>110</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
     <additional_attributes>30;30;30;90</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>50</x>
+      <y>1180</y>
+      <w>500</w>
+      <h>180</h>
+    </coordinates>
+    <panel_attributes>us.rader.wyfy::WriteTagActivity
+--
+-uri: Uri
+--
++WriteTagActivity(): ctor
++onCreateOptionsMenu(Menu menu): boolean
++onOptionsItemSelected(MenuItem item): boolean
+#createNdefMessage(NdefMessage currentMessage): NdefMessage
+#onCreate(Bundle savedInstanceState): void
+-setupActionBar(): void
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>960</x>
+      <y>1120</y>
+      <w>50</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>30;30;30;120</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>690</x>
+      <y>1120</y>
+      <w>620</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>android.support.v4.app::Fragment</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>50</x>
+      <y>0</y>
+      <w>500</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>android.support.v4.app::FragmentActivity</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>520</x>
+      <y>1240</y>
+      <w>210</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.</panel_attributes>
+    <additional_attributes>190;30;30;30</additional_attributes>
   </element>
 </diagram>

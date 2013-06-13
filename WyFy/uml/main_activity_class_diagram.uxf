@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="12.0">
+  <zoom_level>10</zoom_level>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>110</x>
+      <y>120</y>
+      <w>300</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>android.support.v4.app::FragmentActivity</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>490</x>
+      <y>690</y>
+      <w>270</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.</panel_attributes>
+    <additional_attributes>250;30;30;30</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>230</x>
+      <y>120</y>
+      <w>50</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>30;30;30;110</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>490</x>
+      <y>340</y>
+      <w>90</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.</panel_attributes>
+    <additional_attributes>70;30;30;30</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>610</x>
+      <y>100</y>
+      <w>620</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>android.support.v4.app::Fragment</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>740</x>
+      <y>690</y>
+      <w>610</w>
+      <h>160</h>
+    </coordinates>
+    <panel_attributes>us.rader.wyfy::QrCodeFragment
+--
+-wifiSettings: WifiSettings
+-qrCode: ImageView
+--
++onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState): View
++shareQrCode(): void
++updateQrCode(): void
+-getQrCodeSize(): int
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>30</x>
+      <y>230</y>
+      <w>490</w>
+      <h>550</h>
+    </coordinates>
+    <panel_attributes>us.rader.wyfy::MainActivity
+--
++REQUEST_SHOWS_SAVED_DATA = 2: int
++REQUEST_WRITE_TAG = 1: int
+-wifiSettings: WifiSettings
+-connectTask: ConnectTask
+-getActiveConnectionTask: GetActiveConnectionTask
+-qrCodeFragment: QrCodeFragment
+-wifiManager: WifiManager
+-wifiSettingsFragment: WifiSettingsFragment
+--
++MainActivity(): ctor
++onCreateOptionsMenu(Menu menu): boolean
++onOptionsItemSelected(MenuItem item): boolean
++onWifiSettingsChanged(): void
+#onActivityResult(int requestCode, int resultCode, Intent resultData): void
+#onCreate(Bundle savedInstanceState): void
+-alert(String message): void
+-onLoadSavedData(int resultCode, Intent resultData): void
+-onQrCodeScanned(int requestCode, int resultCode, Intent resultData): void
+-onTagWritten(int resultCode, Intent resultData): void
+-parseIntentData(): boolean
+-parseLegacyMessage(NdefMessage ndefMessage): boolean
+-parseUri(String uri): boolean
+-scanQrCode(): void
+-setFragments(Bundle savedInstanceState): void
+-setLandscape(): void
+-setPortrait(): void
+-setSinglePane(): void
+-shareQrCode(): void
+-showSavedRows(): boolean
+-writeTag(): boolean
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>560</x>
+      <y>230</y>
+      <w>610</w>
+      <h>410</h>
+    </coordinates>
+    <panel_attributes>us.rader.wyfy::WifiSettingsFragment
+--
+-HIDDEN_PARAMETER = "HIDDEN": String
+-PASSWORD_PARAMETER = "PASSWORD": String
+-SECURITY_PARAMETER = "SECURITY": String
+-SSID_PARAMETER = "SSID": String
+-wifiSettings: WifiSettings
+-dbHelper: WifiSettingsDatabaseHelper
+-hiddenCheckBox: CheckBox
+-listener: OnWifiSettingsChangedListener
+-lookupPasswordTask: LookupPasswordTask
+-passwordText: EditText
+-securityGroup: RadioGroup
+-ssidText: EditText
+--
++WifiSettingsFragment(): ctor
++onAttach(Activity activity): void
++onCreate(Bundle savedInstanceState): void
++onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState): View
++onDetach(): void
++onInitializedFromActiveConnection(): void
++onModelChanged(boolean updateDatabase): void
++onSaveInstanceState(Bundle outState): void
+-onControlsChanged(boolean updateDatabase): void
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>1170</x>
+      <y>100</y>
+      <w>50</w>
+      <h>610</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>30;30;30;590</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>820</x>
+      <y>100</y>
+      <w>50</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>30;30;30;130</additional_attributes>
+  </element>
+</diagram>

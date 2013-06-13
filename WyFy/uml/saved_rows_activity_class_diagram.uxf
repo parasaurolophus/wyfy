@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="12.0">
+  <zoom_level>10</zoom_level>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>70</x>
+      <y>130</y>
+      <w>300</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>android.support.v4.app::FragmentActivity</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>850</x>
+      <y>120</y>
+      <w>50</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>30;30;30;80</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>70</x>
+      <y>220</y>
+      <w>300</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>us.rader.wyfy::SavedRowsActivity
+--
+-deleteRowsFragment: SavedRowsFragment
+--
+#onCreate(Bundle savedInstanceState): void
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>190</x>
+      <y>130</y>
+      <w>50</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>30;30;30;90</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>560</x>
+      <y>200</y>
+      <w>670</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>us.rader.wyfy::SavedRowsFragment
+--
+-SELECT_BY_SSID = WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SSID + " LIKE ?": String
+-allRowsList: ListView
+--
++onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState): View
+-deleteRow(final String ssid): void
+-loadRow(String ssid): void
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>340</x>
+      <y>240</y>
+      <w>240</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.</panel_attributes>
+    <additional_attributes>220;30;30;30</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>550</x>
+      <y>120</y>
+      <w>680</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>android.support.v4.app::Fragment</panel_attributes>
+    <additional_attributes/>
+  </element>
+</diagram>

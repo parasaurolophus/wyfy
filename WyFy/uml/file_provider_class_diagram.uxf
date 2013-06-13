@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="12.0">
+  <zoom_level>10</zoom_level>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>340</x>
+      <y>90</y>
+      <w>50</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>30;30;30;120</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>80</x>
+      <y>210</y>
+      <w>620</w>
+      <h>280</h>
+    </coordinates>
+    <panel_attributes>us.rader.wyfy.provider::FileProvider
+--
+-CONTENT_SCHEME = "content://": String
+-DEFAULT_MIME_TYPE = "application/octet-stream": String
+-mimeTypes: Map&lt;String, String&gt;
+-PATH_SEPARATOR = "/": String
+--
++getContentUri(String contentAuthority, String fileName): Uri
++getMimeType(Uri uri): String
++delete(Uri uri, String selection, String[] selectionArgs): int
++getType(Uri uri): String
++insert(Uri uri, ContentValues values): Uri
++onCreate(): boolean
++openFile(Uri uri, String mode): ParcelFileDescriptor
++query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder): Cursor
++update(Uri uri, ContentValues values, String selection, String[] selectionArgs): int
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>70</x>
+      <y>90</y>
+      <w>640</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>/android.content::ContentProvider/</panel_attributes>
+    <additional_attributes/>
+  </element>
+</diagram>

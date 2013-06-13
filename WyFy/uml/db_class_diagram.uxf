@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="12.0">
+  <zoom_level>10</zoom_level>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>710</x>
+      <y>280</y>
+      <w>260</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>us.rader.wyfy.db::WiFiSettingsContract
+--
+--
+-WiFiSettingsContract(): ctor
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>30</x>
+      <y>180</y>
+      <w>540</w>
+      <h>290</h>
+    </coordinates>
+    <panel_attributes>us.rader.wyfy.db::WifiSettingsDatabaseHelper
+--
+_-DATABASE_NAME: String_
+_-DATABASE_VERSION : int_
+_-SQL_CREATE_ENTRIES : String_
+_-SQL_DELETE_ENTRIES: String_
+--
++WifiSettingsDatabaseHelper(Context context): ctor
++delete(String selection, String... selectionArgs): void
++lookupPassword(): String
++onCreate(SQLiteDatabase db): void
++onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion): void
++onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion): void
++query(SQLiteDatabase db, String selection, String... selectionArgs): Cursor
++storeWifiSettings(): void
+-insert(SQLiteDatabase db): void
+-update(SQLiteDatabase db): void
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>30</x>
+      <y>60</y>
+      <w>540</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>/android.database.sqlite::SQLiteOpenHelper/</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>250</x>
+      <y>60</y>
+      <w>50</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>30;30;30;120</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>540</x>
+      <y>280</y>
+      <w>190</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.</panel_attributes>
+    <additional_attributes>170;30;30;30</additional_attributes>
+  </element>
+</diagram>
