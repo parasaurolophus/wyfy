@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="12.0">
+  <zoom_level>10</zoom_level>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>110</x>
+      <y>60</y>
+      <w>660</w>
+      <h>720</h>
+    </coordinates>
+    <panel_attributes>us.rader.wyfy.model::WifiSettings
+--
+_+EMPTY_STRING = "": String_
+_-DOUBLE_QUOTE = "\"": String_
+_-serialVersionUID = 1L: long_
+_-singleton: WifiSettings_
+_-URI_SCHEME = "WIFI:": String_
+_-WEP_PARAMETER_VALUE = "WEP": String_
+_-WPA_PARAMETER_VALUE = "WPA": String_
+-hidden: boolean
+-password: String
+-security: Security
+-ssid: String
+--
+-WifiSettings(): ctor
+_+getInstance(): WifiSettings_
+-addNetwork(WifiManager manager, String wrappedSsid, String password, Security securityProtcol): int
+-addQuotes(String string): String
+-parseParameterValue(BufferedReader reader): String
+-removeQuotes(String string): String
+-skipWhitespace(BufferedReader reader): int
+-toSecurity(String parameterValue): Security
++connect(WifiManager manager): ConnectionOutcome
++getActiveConnection(WifiManager manager): boolean
++getContentValues(): ContentValues
++getPassword(): String
++getQrCode(int foregroundColor, int backgroundColor, int size): Bitmap
++getSecurity(): Security
++getSsid(): String
++isHidden(): boolean
++parse(BufferedReader reader): boolean
++parse(InputStream stream): boolean
++parse(Reader reader): boolean
++parse(String uri): boolean
++parse(Uri uri): boolean
++setHidden(boolean hidden): void
++setPassword(String password): void
++setSecurity(Security security): void
++setSsid(String ssid): void
++toString(): String
++update(ContentValues values): void
+-initialize(WifiConfiguration configuration): boolean
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+</diagram>

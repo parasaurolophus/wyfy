@@ -168,10 +168,14 @@ import android.widget.Toast;
  * directly affect the UI in {@link #onTagProcessed(Object)}
  * </p>
  * 
+ * <a name="non_final"></a>
+ * 
+ * <h2>Non-Final Methods</h2>
+ * 
  * <p>
  * As a rule of thumb, methods of <code>abstract</code> classes that are not,
- * themselves, <code>abstract</code> should be <code>final</code>. This class
- * violates that rule for {@link Activity} life-cycle methods like
+ * themselves, <code>abstract</code> should generally be <code>final</code>.
+ * This class violates that rule for {@link Activity} life-cycle methods like
  * {@link #onCreate(Bundle)}, {@link #onPause()}, {@link #onResume()} etc.
  * because of the high degree of likelihood that derived classes will also need
  * to override some or all of those particular methods. In all such cases, you
