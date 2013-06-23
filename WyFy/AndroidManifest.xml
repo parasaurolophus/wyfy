@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="us.rader.wyfy"
-    android:versionCode="202"
-    android:versionName="2.2" >
+    android:versionCode="203"
+    android:versionName="2.3" >
 
     <uses-sdk
         android:minSdkVersion="10"
