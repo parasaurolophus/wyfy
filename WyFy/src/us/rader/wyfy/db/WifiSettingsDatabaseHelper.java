@@ -15,14 +15,15 @@
  */
 package us.rader.wyfy.db;
 
-import us.rader.wyfy.db.WiFiSettingsContract.WifiSettingsEntry;
-import us.rader.wyfy.model.WifiSettings;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
+
+import us.rader.wyfy.db.WiFiSettingsContract.WifiSettingsEntry;
+import us.rader.wyfy.model.WifiSettings;
 
 /**
  * {@link SQLiteOpenHelper} for the WyFy datbase
@@ -33,6 +34,12 @@ import android.provider.BaseColumns;
  * @author Kirk
  */
 public final class WifiSettingsDatabaseHelper extends SQLiteOpenHelper {
+
+    /**
+     * Database selection string to match by SSID
+     */
+    public static final String  SELECT_BY_SSID     = WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SSID
+                                                           + " LIKE ?";                                        //$NON-NLS-1$
 
     /**
      * Database name
@@ -84,6 +91,9 @@ public final class WifiSettingsDatabaseHelper extends SQLiteOpenHelper {
     /**
      * Delete any row(s) matching the given criteria
      * 
+     * @param db
+     *            {@link SQLiteDatabase}
+     * 
      * @param selection
      *            the selection string
      * 
@@ -91,59 +101,46 @@ public final class WifiSettingsDatabaseHelper extends SQLiteOpenHelper {
      *            string with which to replace '?' variables in
      *            <code>selection</code>
      */
-    public void delete(String selection, String... selectionArgs) {
+    public void delete(SQLiteDatabase db, String selection,
+            String... selectionArgs) {
 
-        SQLiteDatabase db = getWritableDatabase();
+        db.delete(WiFiSettingsContract.WifiSettingsEntry.TABLE_NAME, selection,
+                selectionArgs);
 
-        try {
-
-            db.delete(WiFiSettingsContract.WifiSettingsEntry.TABLE_NAME,
-                    selection, selectionArgs);
-
-        } finally {
-
-            db.close();
-
-        }
     }
 
     /**
-     * Return the password stored in the database for the current value of the
-     * {@link WifiSettings} singleton's SSID
+     * Return the password stored in the database for the given SSID
+     * 
+     * @param db
+     *            {@link SQLiteDatabase}
+     * 
+     * @param ssid
+     *            SSID
      * 
      * @return password or <code>null</code> to indicate that no entry has yet
-     *         been created for the current SSID
+     *         been created for the given SSID
      */
-    public String lookupPassword() {
+    public String lookupPassword(SQLiteDatabase db, String ssid) {
 
-        SQLiteDatabase db = getWritableDatabase();
+        Cursor cursor = query(db, SELECT_BY_SSID, ssid);
 
         try {
 
-            Cursor cursor = query(db, null);
+            if (!cursor.moveToNext()) {
 
-            try {
-
-                if (!cursor.moveToNext()) {
-
-                    return null;
-
-                }
-
-                int index = cursor
-                        .getColumnIndex(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_PASSWORD);
-                String password = cursor.getString(index);
-                return password;
-
-            } finally {
-
-                cursor.close();
+                return null;
 
             }
 
+            int index = cursor
+                    .getColumnIndex(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_PASSWORD);
+            String password = cursor.getString(index);
+            return password;
+
         } finally {
 
-            db.close();
+            cursor.close();
 
         }
     }
@@ -225,7 +222,7 @@ public final class WifiSettingsDatabaseHelper extends SQLiteOpenHelper {
      * 
      * This will return an empty {@link Cursor} if no matching row has yet been
      * added to the database. If this ever returns a {@link Cursor} with more
-     * than one entry, then some data corruption has occured due to a bug
+     * than one entry, then some data corruption has occurred due to a bug
      * somewhere in the app
      * 
      * @param db
@@ -257,10 +254,11 @@ public final class WifiSettingsDatabaseHelper extends SQLiteOpenHelper {
     /**
      * Update the existing row or insert a new row for the current state of the
      * {@link WifiSettings} singleton
+     * 
+     * @param db
+     *            {@link SQLiteDatabase}
      */
-    public void storeWifiSettings() {
-
-        SQLiteDatabase db = getWritableDatabase();
+    public void storeWifiSettings(SQLiteDatabase db) {
 
         try {
 

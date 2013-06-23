@@ -15,11 +15,9 @@
  */
 package us.rader.wyfy;
 
-import us.rader.wyfy.db.WifiSettingsDatabaseHelper;
-import us.rader.wyfy.model.WifiSettings;
-import us.rader.wyfy.model.WifiSettings.Security;
 import android.app.Activity;
-import android.os.AsyncTask;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
@@ -32,6 +30,11 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.RadioGroup;
+
+import us.rader.wyfy.db.QueryHandler;
+import us.rader.wyfy.db.WifiSettingsDatabaseHelper;
+import us.rader.wyfy.model.WifiSettings;
+import us.rader.wyfy.model.WifiSettings.Security;
 
 /**
  * {@link Fragment} for the WIFI wifiSettings UI
@@ -96,55 +99,59 @@ public final class WifiSettingsFragment extends Fragment {
     }
 
     /**
-     * Invoke {@link WifiSettingsDatabaseHelper#lookupPassword()} in a worker
-     * thread, update the UI in the main thread
+     * Invoke
+     * {@link WifiSettingsDatabaseHelper#lookupPassword(android.database.sqlite.SQLiteDatabase, String)}
+     * in a worker thread, update the UI in the main thread
      */
-    private class LookupPasswordTask extends AsyncTask<Void, Void, String> {
+    private final class LookupPasswordListener implements
+            QueryHandler.QueryListener {
 
         /**
-         * Invoke {@link WifiSettingsDatabaseHelper#lookupPassword()} in a
-         * worker thread
+         * Update the UI to reflect the result of a database query
          * 
-         * @param params
-         *            ignored
+         * @param ssid
+         *            the SSID
          * 
-         * @return value returned by
-         *         {@link WifiSettingsDatabaseHelper#lookupPassword()}
+         * @param password
+         *            the password
          * 
-         * @see android.os.AsyncTask#doInBackground(Void...)
+         * @see us.rader.wyfy.db.QueryHandler.QueryListener#onPasswordResult(java.lang.String,
+         *      java.lang.String)
          */
         @Override
-        protected String doInBackground(Void... params) {
+        public void onPasswordResult(final String ssid, final String password) {
 
-            if (dbHelper == null) {
+            getActivity().runOnUiThread(new Runnable() {
 
-                return null;
+                @Override
+                public void run() {
 
-            }
+                    if (password != null) {
 
-            return dbHelper.lookupPassword();
+                        wifiSettings.setPassword(password);
+
+                    }
+
+                    onModelChanged(false);
+
+                }
+
+            });
 
         }
 
         /**
-         * Update the UI
+         * Nothing to do for this class
          * 
-         * @param result
-         *            value returned by
-         *            {@link WifiSettingsDatabaseHelper#lookupPassword()}
+         * @param cursor
+         *            ignored
          * 
-         * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
+         * @see us.rader.wyfy.db.QueryHandler.QueryListener#onQueryPerformed(android.database.Cursor)
          */
         @Override
-        protected void onPostExecute(String result) {
+        public void onQueryPerformed(Cursor cursor) {
 
-            if (result != null) {
-
-                wifiSettings.setPassword(result);
-
-            }
-
-            onModelChanged(false);
+            // nothing to do in this class
 
         }
 
@@ -243,38 +250,6 @@ public final class WifiSettingsFragment extends Fragment {
 
             wifiSettings.setSsid(editable.toString());
             onControlsChanged(false);
-
-        }
-
-    }
-
-    /**
-     * Invoke {@link WifiSettingsDatabaseHelper#storeWifiSettings()} in a worker
-     * thread
-     */
-    private class StoreWifiSettingsTask extends AsyncTask<Void, Void, Void> {
-
-        /**
-         * Invoke {@link WifiSettingsDatabaseHelper#storeWifiSettings()} in a
-         * worker thread
-         * 
-         * @param params
-         *            ignored
-         * 
-         * @return <code>null</code>
-         * 
-         * @see android.os.AsyncTask#doInBackground(Void...)
-         */
-        @Override
-        protected Void doInBackground(Void... params) {
-
-            if (dbHelper != null) {
-
-                dbHelper.storeWifiSettings();
-
-            }
-
-            return null;
 
         }
 
@@ -382,11 +357,6 @@ public final class WifiSettingsFragment extends Fragment {
     }
 
     /**
-     * {@link WifiSettingsDatabaseHelper}
-     */
-    private WifiSettingsDatabaseHelper    dbHelper;
-
-    /**
      * {@link CheckBox} for a wifi access point with a SSID that isn't broadcast
      */
     private CheckBox                      hiddenCheckBox;
@@ -396,11 +366,6 @@ public final class WifiSettingsFragment extends Fragment {
      * wifiSettings
      */
     private OnWifiSettingsChangedListener listener;
-
-    /**
-     * {@link LookupPasswordTask}
-     */
-    private LookupPasswordTask            lookupPasswordTask;
 
     /**
      * {@link EditText} for a wifi access point password string or WEP key
@@ -418,15 +383,6 @@ public final class WifiSettingsFragment extends Fragment {
     private EditText                      ssidText;
 
     /**
-     * Initialize {@link #lookupPasswordTask}
-     */
-    public WifiSettingsFragment() {
-
-        lookupPasswordTask = new LookupPasswordTask();
-
-    }
-
-    /**
      * Set the {@link #listener}
      * 
      * @param activity
@@ -439,7 +395,6 @@ public final class WifiSettingsFragment extends Fragment {
 
         super.onAttach(activity);
         this.listener = (OnWifiSettingsChangedListener) activity;
-        dbHelper = new WifiSettingsDatabaseHelper(activity);
 
     }
 
@@ -515,7 +470,6 @@ public final class WifiSettingsFragment extends Fragment {
 
         super.onDetach();
         this.listener = null;
-        dbHelper = null;
 
     }
 
@@ -528,7 +482,11 @@ public final class WifiSettingsFragment extends Fragment {
      */
     public void onInitializedFromActiveConnection() {
 
-        lookupPasswordTask.execute();
+        QueryHandler handler = QueryHandler.getInstance(getActivity());
+        WifiSettingsDatabaseHelper helper = handler.getHelper();
+        SQLiteDatabase db = helper.getWritableDatabase();
+        handler.lookupPassword(db, new LookupPasswordListener(),
+                wifiSettings.getSsid());
 
     }
 
@@ -539,8 +497,6 @@ public final class WifiSettingsFragment extends Fragment {
      * @param updateDatabase
      *            also store the new settings in the database if and only if
      *            <code>updateDatabase</code> is <code>true</code>
-     * 
-     * @see StoreWifiSettingsTask
      */
     public void onModelChanged(boolean updateDatabase) {
 
@@ -569,8 +525,7 @@ public final class WifiSettingsFragment extends Fragment {
 
         if (updateDatabase) {
 
-            new StoreWifiSettingsTask().execute();
-
+            storeWifiSettings();
         }
     }
 
@@ -622,7 +577,7 @@ public final class WifiSettingsFragment extends Fragment {
 
             if (updateDatabase) {
 
-                new StoreWifiSettingsTask().execute();
+                storeWifiSettings();
 
             }
 
@@ -637,6 +592,20 @@ public final class WifiSettingsFragment extends Fragment {
             Log.e(getClass().getName(), "notifyListener", e); //$NON-NLS-1$
 
         }
+    }
+
+    /**
+     * Invoke
+     * {@link WifiSettingsDatabaseHelper#storeWifiSettings(SQLiteDatabase)}
+     * asynchronousy
+     */
+    private void storeWifiSettings() {
+
+        QueryHandler handler = QueryHandler.getInstance(getActivity());
+        WifiSettingsDatabaseHelper helper = handler.getHelper();
+        SQLiteDatabase db = helper.getWritableDatabase();
+        handler.storeWifiSettings(db);
+
     }
 
 }

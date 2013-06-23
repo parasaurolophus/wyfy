@@ -15,10 +15,6 @@
  */
 package us.rader.wyfy;
 
-import us.rader.wyfy.db.WiFiSettingsContract;
-import us.rader.wyfy.model.WifiSettings;
-import us.rader.wyfy.model.WifiSettings.ConnectionOutcome;
-import us.rader.wyfy.nfc.NdefReaderActivity;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -41,6 +37,11 @@ import android.view.MenuItem;
 
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
+
+import us.rader.wyfy.db.WiFiSettingsContract;
+import us.rader.wyfy.model.WifiSettings;
+import us.rader.wyfy.model.WifiSettings.ConnectionOutcome;
+import us.rader.wyfy.nfc.NdefReaderActivity;
 
 /**
  * Launcher {@link Activity} for <code>WyFy</code> app
@@ -389,7 +390,7 @@ public final class MainActivity extends FragmentActivity implements
         super.onCreate(savedInstanceState);
         wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
         setContentView(R.layout.main);
-        setFragments(savedInstanceState);
+        setFragments();
 
         if (savedInstanceState == null) {
 
@@ -524,7 +525,11 @@ public final class MainActivity extends FragmentActivity implements
 
                         if (wifiSettings.parse(uri)) {
 
-                            wifiSettingsFragment.onModelChanged(true);
+                            if (wifiSettingsFragment != null) {
+
+                                wifiSettingsFragment.onModelChanged(true);
+
+                            }
 
                         } else {
 
@@ -749,19 +754,10 @@ public final class MainActivity extends FragmentActivity implements
     /**
      * Initialize the UI {@link Fragment} instances according to the current
      * screen layout
-     * 
-     * @param savedInstanceState
-     *            saved state or <code>null</code>
      */
-    private void setFragments(Bundle savedInstanceState) {
+    private void setFragments() {
 
         if (findViewById(R.id.single_fragment) != null) {
-
-            if (savedInstanceState != null) {
-
-                return;
-
-            }
 
             setSinglePane();
 

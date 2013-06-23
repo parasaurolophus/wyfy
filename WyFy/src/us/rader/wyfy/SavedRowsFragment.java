@@ -20,8 +20,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import us.rader.wyfy.db.WiFiSettingsContract;
-import us.rader.wyfy.db.WifiSettingsDatabaseHelper;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -29,10 +27,10 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,6 +38,10 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import us.rader.wyfy.db.QueryHandler;
+import us.rader.wyfy.db.WiFiSettingsContract;
+import us.rader.wyfy.db.WifiSettingsDatabaseHelper;
 
 /**
  * UI to delete rows from the database
@@ -49,234 +51,143 @@ import android.widget.TextView;
 public class SavedRowsFragment extends Fragment {
 
     /**
-     * Invoke {@link WifiSettingsDatabaseHelper#delete(String, String...)} in a
-     * worker thread
-     */
-    private class DeleteRowTask extends AsyncTask<String, Void, Void> {
-
-        /**
-         * Invoke {@link WifiSettingsDatabaseHelper#delete(String, String...)}
-         * in a worker thread
-         * 
-         * @param params
-         *            <code>selection</code> and <code>selectionArgs</code>
-         *            parameters to
-         *            {@link WifiSettingsDatabaseHelper#delete(String, String...)}
-         * 
-         * @return <code>null</code>
-         * 
-         * @see android.os.AsyncTask#doInBackground(Object...)
-         */
-        @Override
-        protected Void doInBackground(String... params) {
-
-            new WifiSettingsDatabaseHelper(getActivity()).delete(
-                    SELECT_BY_SSID, params[0]);
-            return null;
-
-        }
-
-        /**
-         * Terminate the current activity
-         * 
-         * @param result
-         *            ignored
-         * 
-         * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
-         */
-        @Override
-        protected void onPostExecute(Void result) {
-
-            FragmentActivity activity = getActivity();
-            activity.setResult(Activity.RESULT_OK);
-            activity.finish();
-
-        }
-
-    }
-
-    /**
-     * Return the result of a database query to the {@link Activity} that
-     * started this one
-     */
-    private class LoadRowTask extends QueryTask {
-
-        /**
-         * Return the result of a database query to the {@link Activity} that
-         * started this one
-         * 
-         * @param rows
-         *            the query results
-         * 
-         * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
-         */
-        @Override
-        protected void onPostExecute(List<Map<String, String>> rows) {
-
-            StringBuilder buffer = new StringBuilder("result"); //$NON-NLS-1$
-
-            if (rows.size() > 0) {
-
-                Map<String, String> row = rows.get(0);
-
-                buffer.append('?');
-                buffer.append(Uri
-                        .encode(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_HIDDEN));
-                buffer.append('=');
-                buffer.append(Uri.encode(row
-                        .get(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_HIDDEN)));
-
-                buffer.append('&');
-                buffer.append(Uri
-                        .encode(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_PASSWORD));
-                buffer.append('=');
-                buffer.append(Uri.encode(row
-                        .get(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_PASSWORD)));
-
-                buffer.append('&');
-                buffer.append(Uri
-                        .encode(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SECURITY));
-                buffer.append('=');
-                buffer.append(Uri.encode(row
-                        .get(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SECURITY)));
-
-                buffer.append('&');
-                buffer.append(Uri
-                        .encode(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SSID));
-                buffer.append('=');
-                buffer.append(Uri.encode(row
-                        .get(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SSID)));
-
-            }
-
-            Uri uri = Uri.parse(buffer.toString());
-            Intent intent = new Intent();
-            intent.setData(uri);
-            FragmentActivity activity = getActivity();
-            activity.setResult(Activity.RESULT_OK, intent);
-            activity.finish();
-
-        }
-
-    }
-
-    /**
-     * Populate the list of saved SSID's in a worker thread
-     */
-    private class PopulateListTask extends QueryTask {
-
-        /**
-         * Populate {@link SavedRowsFragment#allRowsList}
-         * 
-         * @param rows
-         *            cached data from all rows in the database
-         * 
-         * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
-         */
-        @Override
-        protected void onPostExecute(List<Map<String, String>> rows) {
-
-            ArrayList<String> ssidList = new ArrayList<String>();
-
-            for (Map<String, String> row : rows) {
-
-                String ssid = row
-                        .get(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SSID);
-                ssidList.add(ssid);
-
-            }
-
-            ArrayAdapter<String> adapter = new ArrayAdapter<String>(
-                    getActivity(), R.layout.row_layout, R.id.ssid_row_text,
-                    ssidList);
-            allRowsList.setAdapter(adapter);
-
-        }
-    }
-
-    /**
      * Execute a database query in a worker thread
      */
-    private abstract class QueryTask extends
-            AsyncTask<String, Void, List<Map<String, String>>> {
+    private abstract class ListQueryListener implements
+            QueryHandler.QueryListener {
 
         /**
-         * Invoke
-         * {@link WifiSettingsDatabaseHelper#query(SQLiteDatabase, String, String...)}
-         * in a worker thread
+         * Ignored in this class
          * 
-         * @param params
-         *            <code>selection</code> and <code>selectionArgs</code>
-         *            parameters to {@ink
-         *            WifiSettingsDatabaseHelper#query(SQLiteDatabase, String,
-         *            String...)}
+         * @param ssid
+         *            ignored
          * 
-         * @return cache of data from the selected rows
+         * @param password
+         *            ignored
          * 
-         * @see android.os.AsyncTask#doInBackground(Object...)
+         * @see us.rader.wyfy.db.QueryHandler.QueryListener#onPasswordResult(java.lang.String,
+         *      java.lang.String)
          */
         @Override
-        protected List<Map<String, String>> doInBackground(String... params) {
+        public final void onPasswordResult(String ssid, String password) {
 
-            List<Map<String, String>> result = new ArrayList<Map<String, String>>();
-            WifiSettingsDatabaseHelper helper = new WifiSettingsDatabaseHelper(
-                    getActivity());
-            SQLiteDatabase db = helper.getReadableDatabase();
+            // nothing to do for this class
+
+        }
+
+        /**
+         * Construct a temporary copy of the contents of the given
+         * {@link Cursor} and pass it to {@link #handleResult(List)}
+         * 
+         * @param cursor
+         *            {@link Cursor}
+         * 
+         * @see us.rader.wyfy.db.QueryHandler.QueryListener#onQueryPerformed(android.database.Cursor)
+         */
+        @Override
+        public final void onQueryPerformed(Cursor cursor) {
 
             try {
 
-                String selection = params[0];
-                String[] selectionArgs = new String[params.length - 1];
+                final List<Map<String, String>> result = processRows(cursor);
 
-                for (int index = 1; index < params.length; ++index) {
+                getActivity().runOnUiThread(new Runnable() {
 
-                    selectionArgs[index - 1] = params[index];
+                    @Override
+                    public void run() {
 
-                }
-
-                Cursor cursor = helper.query(db, selection, selectionArgs);
-
-                try {
-
-                    while (cursor.moveToNext()) {
-
-                        Map<String, String> entry = new HashMap<String, String>();
-                        int index;
-                        index = cursor
-                                .getColumnIndex(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_HIDDEN);
-                        int hidden = cursor.getInt(index);
-                        entry.put(
-                                WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_HIDDEN,
-                                ((hidden == 0) ? "false" //$NON-NLS-1$
-                                        : "true")); //$NON-NLS-1$
-                        index = cursor
-                                .getColumnIndex(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_PASSWORD);
-                        entry.put(
-                                WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_PASSWORD,
-                                cursor.getString(index));
-                        index = cursor
-                                .getColumnIndex(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SECURITY);
-                        entry.put(
-                                WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SECURITY,
-                                cursor.getString(index));
-                        index = cursor
-                                .getColumnIndex(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SSID);
-                        entry.put(
-                                WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SSID,
-                                cursor.getString(index));
-                        result.add(entry);
+                        handleResult(result);
 
                     }
 
-                } finally {
+                });
 
-                    cursor.close();
+            } catch (Exception e) {
+
+                Log.e(getClass().getName(), "onQueryPerformed", e); //$NON-NLS-1$
+
+            }
+        }
+
+        /**
+         * Enqueue a command to invoke
+         * {@link QueryHandler#query(SQLiteDatabase, QueryHandler.QueryListener, String, String...)}
+         * asynchronously
+         * 
+         * @param selection
+         *            selection string
+         * 
+         * @param selectionArgs
+         *            selection arguments
+         * 
+         * @return <code>true</code> if and only if command was enqueued
+         */
+        public final boolean query(final String selection,
+                final String... selectionArgs) {
+
+            QueryHandler handler = QueryHandler.getInstance(getActivity());
+            WifiSettingsDatabaseHelper helper = handler.getHelper();
+            SQLiteDatabase db = helper.getWritableDatabase();
+            return handler.query(db, this, selection, selectionArgs);
+
+        }
+
+        /**
+         * Process the contents of a {@link Cursor} cached by
+         * {@link #onQueryPerformed(Cursor)}
+         * 
+         * @param result
+         *            cached contents of the {@link Cursor}
+         */
+        protected abstract void handleResult(List<Map<String, String>> result);
+
+        /**
+         * Helper used by {@link #onQueryPerformed(Cursor)}
+         * 
+         * @param cursor
+         *            the database query result
+         * 
+         * @return the parsed data structure
+         */
+        private List<Map<String, String>> processRows(Cursor cursor) {
+
+            List<Map<String, String>> result = new ArrayList<Map<String, String>>();
+
+            try {
+
+                while (cursor.moveToNext()) {
+
+                    Map<String, String> entry = new HashMap<String, String>();
+                    int index;
+                    index = cursor
+                            .getColumnIndex(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_HIDDEN);
+                    int hidden = cursor.getInt(index);
+                    entry.put(
+                            WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_HIDDEN,
+                            ((hidden == 0) ? "false" //$NON-NLS-1$
+                                    : "true")); //$NON-NLS-1$
+                    index = cursor
+                            .getColumnIndex(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_PASSWORD);
+                    entry.put(
+                            WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_PASSWORD,
+                            cursor.getString(index));
+                    index = cursor
+                            .getColumnIndex(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SECURITY);
+                    entry.put(
+                            WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SECURITY,
+                            cursor.getString(index));
+                    index = cursor
+                            .getColumnIndex(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SSID);
+                    entry.put(
+                            WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SSID,
+                            cursor.getString(index));
+                    result.add(entry);
 
                 }
 
             } finally {
 
-                db.close();
+                cursor.close();
 
             }
 
@@ -287,15 +198,59 @@ public class SavedRowsFragment extends Fragment {
     }
 
     /**
-     * Database selection string to match by SSID
+     * {@link ListQueryListener} that handles a long-press on a particular item
      */
-    private static final String SELECT_BY_SSID = WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SSID
-                                                       + " LIKE ?"; //$NON-NLS-1$
+    private final class LoadRowListener extends ListQueryListener {
+
+        /**
+         * Call {@link SavedRowsFragment#returnRowToCaller(Map)}
+         * 
+         * @param result
+         *            database query result
+         * 
+         * @see SavedRowsFragment#returnRowToCaller(Map)
+         */
+        @Override
+        protected void handleResult(List<Map<String, String>> result) {
+
+            if (result.size() > 0) {
+
+                returnRowToCaller(result.get(0));
+
+            } else {
+
+                returnRowToCaller(null);
+            }
+
+        }
+    }
+
+    /**
+     * {@link ListQueryListener} used to populate the list
+     * 
+     */
+    private final class PopulateListListener extends ListQueryListener {
+
+        /**
+         * Call {@link SavedRowsFragment#populateList(List)}
+         * 
+         * @param result
+         *            database query result
+         * 
+         * @see us.rader.wyfy.SavedRowsFragment.ListQueryListener#handleResult(java.util.List)
+         */
+        @Override
+        protected void handleResult(List<Map<String, String>> result) {
+
+            populateList(result);
+
+        }
+    }
 
     /**
      * {@link ListView} to populate with data from all rows in the database
      */
-    private ListView            allRowsList;
+    private ListView allRowsList;
 
     /**
      * Inflate the {@link View}
@@ -352,7 +307,7 @@ public class SavedRowsFragment extends Fragment {
                     }
                 });
 
-        new PopulateListTask().execute((String) null);
+        new PopulateListListener().query(null);
         return view;
 
     }
@@ -375,7 +330,11 @@ public class SavedRowsFragment extends Fragment {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
-                        new DeleteRowTask().execute(ssid);
+                        QueryHandler handler = QueryHandler
+                                .getInstance(getActivity());
+                        WifiSettingsDatabaseHelper helper = handler.getHelper();
+                        SQLiteDatabase db = helper.getWritableDatabase();
+                        helper.delete(db, ssid);
                         dialog.dismiss();
 
                     }
@@ -405,7 +364,88 @@ public class SavedRowsFragment extends Fragment {
      */
     private void loadRow(String ssid) {
 
-        new LoadRowTask().execute(SELECT_BY_SSID, ssid);
+        new LoadRowListener().query(WifiSettingsDatabaseHelper.SELECT_BY_SSID,
+                ssid);
+
+    }
+
+    /**
+     * Populate the list in the UI from the given database query results
+     * 
+     * @param rows
+     *            database query results
+     */
+    private void populateList(List<Map<String, String>> rows) {
+
+        ArrayList<String> ssidList = new ArrayList<String>();
+
+        for (Map<String, String> row : rows) {
+
+            String ssid = row
+                    .get(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SSID);
+            ssidList.add(ssid);
+
+        }
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(),
+                R.layout.row_layout, R.id.ssid_row_text, ssidList);
+        allRowsList.setAdapter(adapter);
+
+    }
+
+    /**
+     * Call {@link Activity#setResult(int, Intent)} and
+     * {@link Activity#finish()}
+     * 
+     * @param row
+     *            the data to pass back to the {@link Activity} that started
+     *            this one
+     */
+    private void returnRowToCaller(Map<String, String> row) {
+
+        FragmentActivity activity = getActivity();
+
+        if (row == null) {
+
+            activity.setResult(Activity.RESULT_FIRST_USER);
+            activity.finish();
+            return;
+
+        }
+
+        StringBuilder buffer = new StringBuilder("result"); //$NON-NLS-1$
+        buffer.append('?');
+        buffer.append(Uri
+                .encode(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_HIDDEN));
+        buffer.append('=');
+        buffer.append(Uri.encode(row
+                .get(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_HIDDEN)));
+
+        buffer.append('&');
+        buffer.append(Uri
+                .encode(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_PASSWORD));
+        buffer.append('=');
+        buffer.append(Uri.encode(row
+                .get(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_PASSWORD)));
+
+        buffer.append('&');
+        buffer.append(Uri
+                .encode(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SECURITY));
+        buffer.append('=');
+        buffer.append(Uri.encode(row
+                .get(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SECURITY)));
+
+        buffer.append('&');
+        buffer.append(Uri
+                .encode(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SSID));
+        buffer.append('=');
+        buffer.append(Uri.encode(row
+                .get(WiFiSettingsContract.WifiSettingsEntry.COLUMN_NAME_SSID)));
+        Uri uri = Uri.parse(buffer.toString());
+        Intent intent = new Intent();
+        intent.setData(uri);
+        activity.setResult(Activity.RESULT_OK, intent);
+        activity.finish();
 
     }
 
