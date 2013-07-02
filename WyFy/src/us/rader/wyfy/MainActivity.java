@@ -15,7 +15,10 @@
  */
 package us.rader.wyfy;
 
-import android.app.Activity;
+import us.rader.wyfy.db.WiFiSettingsContract;
+import us.rader.wyfy.model.WifiSettings;
+import us.rader.wyfy.model.WifiSettings.ConnectionOutcome;
+import us.rader.wyfy.nfc.NdefReaderActivity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -27,7 +30,6 @@ import android.nfc.NfcAdapter;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -38,13 +40,8 @@ import android.view.MenuItem;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
-import us.rader.wyfy.db.WiFiSettingsContract;
-import us.rader.wyfy.model.WifiSettings;
-import us.rader.wyfy.model.WifiSettings.ConnectionOutcome;
-import us.rader.wyfy.nfc.NdefReaderActivity;
-
 /**
- * Launcher {@link Activity} for <code>WyFy</code> app
+ * Launcher <code>Activity</code> for <code>WyFy</code> app
  * 
  * @author Kirk
  */
@@ -64,8 +61,6 @@ public final class MainActivity extends FragmentActivity implements
          * 
          * @param params
          *            ignored
-         * 
-         * @see android.os.AsyncTask#doInBackground(Void...)
          */
         @Override
         protected WifiSettings.ConnectionOutcome doInBackground(Void... params) {
@@ -89,8 +84,6 @@ public final class MainActivity extends FragmentActivity implements
          *            value returned by
          *            {@link WifiSettings#connect(WifiManager)} in the worker
          *            thread
-         * 
-         * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
          */
         @Override
         protected void onPostExecute(WifiSettings.ConnectionOutcome result) {
@@ -142,8 +135,6 @@ public final class MainActivity extends FragmentActivity implements
          * 
          * @return result of calling
          *         {@link WifiSettings#getActiveConnection(WifiManager)}
-         * 
-         * @see android.os.AsyncTask#doInBackground(Void...)
          */
         @Override
         protected Boolean doInBackground(Void... params) {
@@ -166,8 +157,6 @@ public final class MainActivity extends FragmentActivity implements
          * @param result
          *            result of calling
          *            {@link WifiSettings#getActiveConnection(WifiManager)}
-         * 
-         * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
          */
         @Override
         protected void onPostExecute(Boolean result) {
@@ -195,14 +184,14 @@ public final class MainActivity extends FragmentActivity implements
     }
 
     /**
-     * {@link Activity#startActivityForResult(Intent, int)} request code when
-     * launching {@link SavedRowsActivity}
+     * <code>Activity.startActivityForResult(Intent, int)</code> request code
+     * when launching {@link SavedRowsActivity}
      */
     public static final int         REQUEST_SHOWS_SAVED_DATA = 2;
 
     /**
-     * {@link Activity#startActivityForResult(Intent, int)} request code when
-     * launching {@link WriteTagActivity}
+     * <code>Activity.startActivityForResult(Intent, int)</code> request code
+     * when launching {@link WriteTagActivity}
      */
     public static final int         REQUEST_WRITE_TAG        = 1;
 
@@ -237,7 +226,7 @@ public final class MainActivity extends FragmentActivity implements
     private QrCodeFragment          qrCodeFragment;
 
     /**
-     * Cached singleton instance of {@link WifiManager}
+     * Cached singleton instance of <code>WifiManager</code>
      */
     private WifiManager             wifiManager;
 
@@ -258,10 +247,10 @@ public final class MainActivity extends FragmentActivity implements
     }
 
     /**
-     * Inflate the options {@link Menu}
+     * Inflate the options <code>Menu</code>
      * 
      * @param menu
-     *            options {@ink Menu}
+     *            options <code>Menu</code>
      */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -273,14 +262,12 @@ public final class MainActivity extends FragmentActivity implements
     }
 
     /**
-     * Handle an options {@link MenuItem}
+     * Handle an options <code>MenuItem</code>
      * 
      * @param item
-     *            {@link MenuItem} to handle
+     *            <code>MenuItem</code> to handle
      * 
      * @return <code>true</code> if and only if event was consumed
-     * 
-     * @see android.app.Activity#onOptionsItemSelected(android.view.MenuItem)
      */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -378,8 +365,9 @@ public final class MainActivity extends FragmentActivity implements
     /**
      * Prepare this instance to be displayed
      * 
-     * Initialize the wi fi wifiSettings model and attach the {@link Fragment}
-     * instances according to the dynamically loaded layout
+     * Initialize the wi fi wifiSettings model and attach the
+     * <code>Fragment</code> instances according to the dynamically loaded
+     * layout
      * 
      * @param savedInstanceState
      *            saved state or <code>null</code>
@@ -436,7 +424,7 @@ public final class MainActivity extends FragmentActivity implements
      *            result code
      * 
      * @param resultData
-     *            {@link Intent} containing result data
+     *            <code>Intent</code> containing result data
      */
     private void onLoadSavedData(int resultCode, Intent resultData) {
 
@@ -491,7 +479,7 @@ public final class MainActivity extends FragmentActivity implements
 
     /**
      * Handle notification that a QR code was scanned at the user's request
-     * using zxing's {@link IntentIntegrator}
+     * using zxing's <code>IntentIntegrator</code>
      * 
      * @param requestCode
      *            request code
@@ -500,7 +488,7 @@ public final class MainActivity extends FragmentActivity implements
      *            result code
      * 
      * @param resultData
-     *            {@link Intent} representing the result from the quest
+     *            <code>Intent</code> representing the result from the quest
      */
     private void onQrCodeScanned(int requestCode, int resultCode,
             Intent resultData) {
@@ -625,7 +613,7 @@ public final class MainActivity extends FragmentActivity implements
     }
 
     /**
-     * Parse the data passed in the given {@link Intent} at launch
+     * Parse the data passed in the given <code>Intent</code> at launch
      * 
      * @return <code>true</code> if and only if an asynchronouse attempt to
      *         connect was launched
@@ -662,13 +650,13 @@ public final class MainActivity extends FragmentActivity implements
     }
 
     /**
-     * Initialize from a legacy {@link NdefMessage}
+     * Initialize from a legacy <code>NdefMessage</code>
      * 
      * Provide backward compatibility for tags written with older versions of
      * this app
      * 
      * @param ndefMessage
-     *            legacy {@link NdefMessage}
+     *            legacy <code>NdefMessage</code>
      * 
      * @return <code>true</code> if and only if an asynchronouse attempt to
      *         connect was launched
@@ -710,10 +698,10 @@ public final class MainActivity extends FragmentActivity implements
     }
 
     /**
-     * Initialize wi fi model state from the given WIFI: {@link Uri}
+     * Initialize wi fi model state from the given WIFI: <code>Uri</code>
      * 
      * @param uri
-     *            WIFI: {@link Uri}
+     *            WIFI: <code>Uri</code>
      * 
      * @return <code>true</code> if and only if an asynchronous attempt to
      *         connect was launched
@@ -740,7 +728,7 @@ public final class MainActivity extends FragmentActivity implements
     }
 
     /**
-     * Use {@link IntentIntegrator} to request that zxing scan a QR code
+     * Use <code>IntentIntegrator</code> to request that zxing scan a QR code
      */
     private void scanQrCode() {
 
@@ -752,8 +740,8 @@ public final class MainActivity extends FragmentActivity implements
     }
 
     /**
-     * Initialize the UI {@link Fragment} instances according to the current
-     * screen layout
+     * Initialize the UI <code>Fragment</code> instances according to the
+     * current screen layout
      */
     private void setFragments() {
 
@@ -854,7 +842,7 @@ public final class MainActivity extends FragmentActivity implements
     }
 
     /**
-     * Start {@Link WriteTagActivity}
+     * Start {@link WriteTagActivity}
      * 
      * @return <code>true</code>
      */

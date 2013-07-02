@@ -21,7 +21,6 @@ import java.io.FileOutputStream;
 import us.rader.wyfy.model.WifiSettings;
 import us.rader.wyfy.provider.FileProvider;
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
@@ -40,15 +39,15 @@ import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.widget.ImageView;
 
 /**
- * {link Fragment} to display the QR code representation of the current WIFI:
- * URI
+ * <code>Fragment</code> to display the QR code representation of the current
+ * WIFI: URI
  * 
  * @author Kirk
  */
 public final class QrCodeFragment extends Fragment {
 
     /**
-     * Create the QR image {@link Bitmap} in a worker thread and update
+     * Create the QR image <code>Bitmap</code> in a worker thread and update
      * {@link QrCodeFragment#qrCode} in the UI thread
      * 
      * @author Kirk
@@ -56,15 +55,14 @@ public final class QrCodeFragment extends Fragment {
     private class UpdateQrCodeTask extends AsyncTask<Void, Void, Bitmap> {
 
         /**
-         * Return the {@link Bitmap} for the QR code image representing
+         * Return the <code>Bitmap</code> for the QR code image representing
          * <code>wifiSettings[0]</code>
          * 
          * @param params
          *            ignored
          * 
-         * @return {@link Bitmap} for QR code image or <code>null</code>
+         * @return <code>Bitmap</code> for QR code image or <code>null</code>
          * 
-         * @see android.os.AsyncTask#doInBackground(Void...)
          * @see WifiSettings#getQrCode(int, int, int)
          * @see #onPostExecute(Bitmap)
          */
@@ -93,12 +91,11 @@ public final class QrCodeFragment extends Fragment {
         }
 
         /**
-         * Set the {@link Bitmap} for {@link QrCodeFragment#qrCode}
+         * Set the <code>Bitmap</code> for {@link QrCodeFragment#qrCode}
          * 
          * @param bitmap
-         *            the {@link Bitmap}
+         *            the <code>Bitmap</code>
          * 
-         * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
          * @see #doInBackground(Void...)
          */
         @Override
@@ -130,19 +127,16 @@ public final class QrCodeFragment extends Fragment {
     private ImageView           qrCode;
 
     /**
-     * Inflate the {@Link View}
+     * Inflate the <code>View</code>
      * 
      * @param inflater
-     *            {@link LayoutInflater}
+     *            <code>LayoutInflater</code>
      * 
      * @param container
-     *            {@link ViewGroup}
+     *            <code>ViewGroup</code>
      * 
      * @param savedInstanceState
      *            saved state or <code>null</code>
-     * 
-     * @see android.support.v4.app.Fragment#onCreateView(android.view.LayoutInflater,
-     *      android.view.ViewGroup, android.os.Bundle)
      */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -198,10 +192,6 @@ public final class QrCodeFragment extends Fragment {
     /**
      * Save QR code to a file and then send a sharing {@link Intent} wrapped in
      * a chooser
-     * 
-     * @see Intent#ACTION_SEND
-     * @see Intent#createChooser(Intent, CharSequence)
-     * @see Activity#startActivity(Intent)
      */
     public void shareQrCode() {
 
@@ -253,7 +243,7 @@ public final class QrCodeFragment extends Fragment {
     }
 
     /**
-     * Get the size of the QR code image based on the current {@link View}
+     * Get the size of the QR code image based on the current <code>View</code>
      * 
      * @return the size of the image
      */

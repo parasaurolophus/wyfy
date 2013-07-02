@@ -15,6 +15,8 @@
  */
 package us.rader.wyfy.db;
 
+import us.rader.wyfy.db.WiFiSettingsContract.WifiSettingsEntry;
+import us.rader.wyfy.model.WifiSettings;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -22,11 +24,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
 
-import us.rader.wyfy.db.WiFiSettingsContract.WifiSettingsEntry;
-import us.rader.wyfy.model.WifiSettings;
-
 /**
- * {@link SQLiteOpenHelper} for the WyFy datbase
+ * <code>SQLiteOpenHelper</code> for the WyFy datbase
  * 
  * Note that the methods of this class should generally be called in worker
  * threads separate from the main UI!
@@ -92,7 +91,7 @@ public final class WifiSettingsDatabaseHelper extends SQLiteOpenHelper {
      * Delete any row(s) matching the given criteria
      * 
      * @param db
-     *            {@link SQLiteDatabase}
+     *            <code>SQLiteDatabase</code>
      * 
      * @param selection
      *            the selection string
@@ -113,7 +112,7 @@ public final class WifiSettingsDatabaseHelper extends SQLiteOpenHelper {
      * Return the password stored in the database for the given SSID
      * 
      * @param db
-     *            {@link SQLiteDatabase}
+     *            <code>SQLiteDatabase</code>
      * 
      * @param ssid
      *            SSID
@@ -149,9 +148,7 @@ public final class WifiSettingsDatabaseHelper extends SQLiteOpenHelper {
      * Create the database from scratch
      * 
      * @param db
-     *            {@link SQLiteDatabase}
-     * 
-     * @see android.database.sqlite.SQLiteOpenHelper#onCreate(android.database.sqlite.SQLiteDatabase)
+     *            <code>SQLiteDatabase</code>
      */
     @Override
     public void onCreate(SQLiteDatabase db) {
@@ -168,7 +165,7 @@ public final class WifiSettingsDatabaseHelper extends SQLiteOpenHelper {
      * if they ever do (i.e. due to some bug)
      * 
      * @param db
-     *            {@link SQLiteDatabase}
+     *            <code>SQLiteDatabase</code>
      * 
      * @param oldVersion
      *            version number of the existing database
@@ -176,8 +173,6 @@ public final class WifiSettingsDatabaseHelper extends SQLiteOpenHelper {
      * @param newVersion
      *            requested version of the new database
      * 
-     * @see android.database.sqlite.SQLiteOpenHelper#onDowngrade(android.database.sqlite.SQLiteDatabase,
-     *      int, int)
      * @see #onUpgrade(SQLiteDatabase, int, int)
      */
     @Override
@@ -196,7 +191,7 @@ public final class WifiSettingsDatabaseHelper extends SQLiteOpenHelper {
      * scratch
      * 
      * @param db
-     *            {@link SQLiteDatabase}
+     *            <code>SQLiteDatabase</code>
      * 
      * @param oldVersion
      *            version number of the existing database
@@ -204,8 +199,6 @@ public final class WifiSettingsDatabaseHelper extends SQLiteOpenHelper {
      * @param newVersion
      *            requested version of the new database
      * 
-     * @see android.database.sqlite.SQLiteOpenHelper#onDowngrade(android.database.sqlite.SQLiteDatabase,
-     *      int, int)
      * @see #onDowngrade(SQLiteDatabase, int, int)
      */
     @Override
@@ -217,16 +210,16 @@ public final class WifiSettingsDatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * Return a {@link Cursor} for records matching the current
+     * Return a <code>Cursor</code> for records matching the current
      * {@link WifiSettings} singleton's SSID
      * 
-     * This will return an empty {@link Cursor} if no matching row has yet been
-     * added to the database. If this ever returns a {@link Cursor} with more
-     * than one entry, then some data corruption has occurred due to a bug
-     * somewhere in the app
+     * This will return an empty <code>Cursor</code> if no matching row has yet
+     * been added to the database. If this ever returns a <code>Cursor</code>
+     * with more than one entry, then some data corruption has occurred due to a
+     * bug somewhere in the app
      * 
      * @param db
-     *            {@link SQLiteDatabase}
+     *            <code>SQLiteDatabase</code>
      * 
      * @param selection
      *            selection SQL parameter
@@ -234,7 +227,7 @@ public final class WifiSettingsDatabaseHelper extends SQLiteOpenHelper {
      * @param selectionArgs
      *            arguments to replace '?' in <code>selection</code>
      * 
-     * @return {@link Cursor}
+     * @return <code>Cursor</code>
      */
     public Cursor query(SQLiteDatabase db, String selection,
             String... selectionArgs) {
@@ -256,7 +249,7 @@ public final class WifiSettingsDatabaseHelper extends SQLiteOpenHelper {
      * {@link WifiSettings} singleton
      * 
      * @param db
-     *            {@link SQLiteDatabase}
+     *            <code>SQLiteDatabase</code>
      */
     public void storeWifiSettings(SQLiteDatabase db) {
 

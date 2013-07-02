@@ -356,7 +356,7 @@ public class SavedRowsFragment extends Fragment {
     }
 
     /**
-     * Return the data for the chosen SSID to the {@link Activity} that started
+     * Return the data for the chosen SSID to the <code>Activity</code> that started
      * this one
      * 
      * @param ssid
@@ -398,7 +398,7 @@ public class SavedRowsFragment extends Fragment {
      * {@link Activity#finish()}
      * 
      * @param row
-     *            the data to pass back to the {@link Activity} that started
+     *            the data to pass back to the <code>Activity</code> that started
      *            this one
      */
     private void returnRowToCaller(Map<String, String> row) {

@@ -22,7 +22,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.nfc.NdefMessage;
 import android.nfc.NfcAdapter;
-import android.nfc.Tag;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
@@ -30,7 +29,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 /**
- * Boilerplate code for using {@link NfcAdapter} foreground dispatch
+ * Boilerplate code for using <code>NfcAdapter</code> foreground dispatch
  * 
  * <h1>Rationale</h1>
  * 
@@ -45,81 +44,50 @@ import android.widget.Toast;
  * 
  * <p>
  * In order for a running app to request that it be the one to be notified for a
- * given kind of {@link Tag} without regard to the usual global rules, it must
- * use the {@link NfcAdapter} foreground dispatch mechanism. This class provides
- * implementations of those specific {@link Activity} life-cycle methods
- * required to utilize foreground dispatch while deferring processing of the
- * contents of such tags to derived classes via <code>abstract</code> methods.
+ * given kind of <code>Tag</code> without regard to the usual global rules, it
+ * must use the <code>NfcAdapter</code> foreground dispatch mechanism. This
+ * class provides implementations of those specific <code>Activity</code>
+ * life-cycle methods required to utilize foreground dispatch while deferring
+ * processing of the contents of such tags to derived classes via
+ * <code>abstract</code> methods.
  * </p>
  * 
  * <h1>Design</h1>
  * 
  * <p>
- * The life-cycle of any {@link Activity} that uses foreground dispatch can be
- * summarized as:</code>
+ * The life-cycle of any <code>Activity</code> that uses foreground dispatch can
+ * be summarized as:
  * 
  * <ol>
  * 
  * <li>
- * <p>
  * Cache some helper objects in {@link #onCreate(Bundle)}:
- * 
  * <ul>
- * 
- * <li>
- * <p>
- * {@link NfcAdapter} singleton
- * </p>
- * </li>
- * 
- * <li>
- * <p>
- * {@link PendingIntent} wrapping a self-invoking
- * {@link Intent#FLAG_ACTIVITY_SINGLE_TOP} intent
- * </p>
- * </li>
- * 
- * <li>
- * <p>
- * {@link IntentFilter} array to select the specific kinds of tags for which it
- * desires to be notified
- * </p>
- * </li>
- * 
+ * <li><code>NfcAdapter</code> singleton</li>
+ * <li><code>PendingIntent</code> wrapping a self-invoking
+ * <code>FLAG_ACTIVITY_SINGLE_TOP</code> intent</li>
+ * <li><code>IntentFilter</code> array to select the specific kinds of tags for
+ * which it desires to be notified</li>
  * </ul>
- * 
- * (See
- * {@link NfcAdapter#enableForegroundDispatch(Activity, PendingIntent, IntentFilter[], String[][])}
- * )
- * </p>
  * </li>
  * 
  * <li>
- * <p>
- * Enable foreground dispatch in {@link #onResume()}
- * </p>
- * </li>
+ * Enable foreground dispatch in {@link #onResume()}</li>
  * 
  * <li>
- * <p>
- * Disable foreground dispatch in {@link #onPause()}
- * </p>
- * </li>
+ * Disable foreground dispatch in {@link #onPause()}</li>
  * 
  * <li>
- * <p>
- * Process a {@link Tag} detected while foreground dispatch was enabled in
- * {@link #onNewIntent(Intent)}
- * </p>
- * </li>
+ * Process a <code>Tag</code> detected while foreground dispatch was enabled in
+ * {@link #onNewIntent(Intent)}</li>
  * 
  * </ol>
  * 
  * <h1>Implementation</h1>
  * 
  * <p>
- * In order to allow derived classes to process the {@link Tag} instances in
- * which it is interested that are detected while foreground dispatch is
+ * In order to allow derived classes to process the <code>Tag</code> instances
+ * in which it is interested that are detected while foreground dispatch is
  * enabled, this class declares the following <code>abstract</code> methods:
  * </p>
  * 
@@ -128,9 +96,9 @@ import android.widget.Toast;
  * <dt>{@link #createIntentFilters()}</dt>
  * <dd>
  * <p>
- * Populate the {@link IntentFilter} array that will be used while foreground
- * dispatch is enabled. This is the set of {@link Intent} meta-data that will
- * trigger an invocation of {@link #onNewIntent(Intent)}.
+ * Populate the <code>IntentFilter</code> array that will be used while
+ * foreground dispatch is enabled. This is the set of <code>Intent</code>
+ * meta-data that will trigger an invocation of {@link #onNewIntent(Intent)}.
  * </p>
  * 
  * <p>
@@ -143,7 +111,7 @@ import android.widget.Toast;
  * <dt>{@link #processTag(Intent)}</dt>
  * <dd>
  * <p>
- * Take whatever action is desired for an {@link Intent} passed to
+ * Take whatever action is desired for an <code>Intent</code> passed to
  * {@link #onNewIntent(Intent)} while foreground dispatch is enabled. This will
  * be invoked in a worker thread, separate from the main UI.
  * </p>
@@ -175,8 +143,8 @@ import android.widget.Toast;
  * <p>
  * As a rule of thumb, methods of <code>abstract</code> classes that are not,
  * themselves, <code>abstract</code> should generally be <code>final</code>.
- * This class violates that rule for {@link Activity} life-cycle methods like
- * {@link #onCreate(Bundle)}, {@link #onPause()}, {@link #onResume()} etc.
+ * This class violates that rule for <code>Activity</code> life-cycle methods
+ * like {@link #onCreate(Bundle)}, {@link #onPause()}, {@link #onResume()} etc.
  * because of the high degree of likelihood that derived classes will also need
  * to override some or all of those particular methods. In all such cases, you
  * must be especially vigilant to always invoke <code>super</code>. [Too bad
@@ -186,7 +154,7 @@ import android.widget.Toast;
  * @param <ContentType>
  *            The type returned by {@link #processTag(Intent)} and expected by
  *            {@link #onTagProcessed(Object)}; canonically, the type of data
- *            contained in the kind of {@link Tag} processed by the derived
+ *            contained in the kind of <code>Tag</code> processed by the derived
  *            class (e.g. {@link NdefMessage}) but that is not actually a
  *            requirement enforced by this class
  * 
@@ -219,13 +187,13 @@ public abstract class ForegroundDispatchActivity<ContentType> extends
          * 
          * @param intents
          *            <code>tags.length</code> must be exactly 1 and
-         *            <code>tags[0]</code> must be the {@link Intent} to process
+         *            <code>tags[0]</code> must be the <code>Intent</code> to
+         *            process
          * 
          * @return the value returned by
          *         {@link ForegroundDispatchActivity#processTag(Intent)} or
-         *         <code><code>null</code> if an error occurs
+         *         <code>null</code> if an error occurs
          * 
-         * @see android.os.AsyncTask#doInBackground(Tag...)
          * @see #onPostExecute(Object)
          * @see #onCancelled(Object)
          * @see ForegroundDispatchActivity#processTag(Intent)
@@ -256,7 +224,6 @@ public abstract class ForegroundDispatchActivity<ContentType> extends
          * This override is provided on behalf of devices running versions of
          * Android based on SDK 10 or earlier
          * 
-         * @see android.os.AsyncTask#onCancelled()
          * @see #onCancelled(Object)
          */
         @Override
@@ -280,7 +247,6 @@ public abstract class ForegroundDispatchActivity<ContentType> extends
          *            {@link ForegroundDispatchActivity#onTagProcessed(Object)};
          *            may (probably will) be <code>null</code>
          * 
-         * @see android.os.AsyncTask#onCancelled(java.lang.Object)
          * @see #onCancelled()
          */
         @Override
@@ -304,8 +270,6 @@ public abstract class ForegroundDispatchActivity<ContentType> extends
          * @param result
          *            value returned by
          *            {@link ForegroundDispatchActivity#processTag(Intent)}
-         * 
-         * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
          */
         @Override
         protected void onPostExecute(ContentType result) {
@@ -325,7 +289,7 @@ public abstract class ForegroundDispatchActivity<ContentType> extends
     }
 
     /**
-     * Cached {@link NfcAdapter}
+     * Cached <code>NfcAdapter</code>
      * 
      * @see #onPause()
      * @see #onResume()
@@ -333,14 +297,14 @@ public abstract class ForegroundDispatchActivity<ContentType> extends
     private NfcAdapter     adapter;
 
     /**
-     * Cached {@link IntentFilter} array
+     * Cached <code>IntentFilter</code> array
      * 
      * @see #onResume()
      */
     private IntentFilter[] filters;
 
     /**
-     * Cached {@link PendingIntent}
+     * Cached <code>PendingIntent</code>
      * 
      * @see #onResume()
      */
@@ -368,11 +332,11 @@ public abstract class ForegroundDispatchActivity<ContentType> extends
     }
 
     /**
-     * Create the {@link IntentFilter} array to use when foreground dispatch is
-     * enabled
+     * Create the <code>IntentFilter</code> array to use when foreground
+     * dispatch is enabled
      * 
-     * @return {@link IntentFilter} that includes filters(s) for the tags and
-     *         technologies supported by the derived class
+     * @return <code>IntentFilter</code> that includes filters(s) for the tags
+     *         and technologies supported by the derived class
      * 
      * @see #onCreate(Bundle)
      * @see #onResume()
@@ -404,7 +368,7 @@ public abstract class ForegroundDispatchActivity<ContentType> extends
      * Handle response to foreground dispatch request
      * 
      * @param intent
-     *            the {@link Intent} containing the response
+     *            the <code>Intent</code> containing the response
      * 
      * @see FragmentActivity#onNewIntent(Intent)
      */
@@ -460,14 +424,14 @@ public abstract class ForegroundDispatchActivity<ContentType> extends
     protected abstract void onTagProcessed(ContentType result);
 
     /**
-     * Handle a {@link Tag} detected while foreground dispatch was enabled
+     * Handle a <code>Tag</code> detected while foreground dispatch was enabled
      * 
      * This method can rely on, and must take account of being called in a
      * worker thread. The value returned here will be passed on to
      * {@link #onTagProcessed(Object)} in the UI thread.
      * 
      * @param intent
-     *            the {@link Intent} passed to {@link #onNewIntent(Intent)}
+     *            the <code>Intent</code> passed to {@link #onNewIntent(Intent)}
      *            while foreground dispatch was enabled
      * 
      * @return value to pass to {@link #onTagProcessed(Object)}

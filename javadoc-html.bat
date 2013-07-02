@@ -1,0 +1,1 @@
+javadoc -overview WyFy/src/overview.html -classpath WyFy/libs/zxing.jar;WyFy\libs\zxingIntegration.jar;WyFy\libs\android-support-v4.jar;C:\Users\a08169\Documents\android-sdk\platforms\android-17\android.jar -source 1.6 -d WyFy/doc -private -sourcepath WyFy/src/;WyFy/gen us.rader.wyfy us.rader.wyfy.db us.rader.wyfy.model us.rader.wyfy.nfc us.rader.wyfy.provider

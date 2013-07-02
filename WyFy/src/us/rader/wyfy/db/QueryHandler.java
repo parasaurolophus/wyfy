@@ -314,8 +314,6 @@ public final class QueryHandler extends Handler {
      * 
      * @throws Throwable
      *             if an error occurs
-     * 
-     * @see java.lang.Object#finalize()
      */
     @Override
     protected void finalize() throws Throwable {

@@ -13,8 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package us.rader.wyfy;
 
+import us.rader.wyfy.db.QueryHandler;
+import us.rader.wyfy.db.WifiSettingsDatabaseHelper;
+import us.rader.wyfy.model.WifiSettings;
+import us.rader.wyfy.model.WifiSettings.Security;
 import android.app.Activity;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -31,20 +36,15 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.RadioGroup;
 
-import us.rader.wyfy.db.QueryHandler;
-import us.rader.wyfy.db.WifiSettingsDatabaseHelper;
-import us.rader.wyfy.model.WifiSettings;
-import us.rader.wyfy.model.WifiSettings.Security;
-
 /**
- * {@link Fragment} for the WIFI wifiSettings UI
+ * <code>Fragment</code> for the WIFI wifiSettings UI
  * 
  * @author Kirk
  */
 public final class WifiSettingsFragment extends Fragment {
 
     /**
-     * Interface implemented by any {@link Activity} to which this
+     * Interface implemented by any <code>Activity</code> to which this
      * {@link WifiSettingsFragment} may be attached
      */
     public interface OnWifiSettingsChangedListener {
@@ -58,23 +58,20 @@ public final class WifiSettingsFragment extends Fragment {
     }
 
     /**
-     * {@link android.widget.CompoundButton.OnCheckedChangeListener} for changes
-     * to the state of the checkbox denoting a hidden SSID
+     * Listener for changes to the state of the checkbox denoting a hidden SSID
      */
     private class HiddenCheckedChangeListener implements
             CompoundButton.OnCheckedChangeListener {
 
         /**
-         * Handle change to checked state of a {@link CompoundButton}
+         * Handle change to checked state of a <code>CompoundButton</code>
          * 
          * @param button
-         *            {@link CompoundButton}
+         *            <code>CompoundButton</code>
          * 
          * @param checked
          *            checked state of the <code>button</code>
          * 
-         * @see android.widget.CompoundButton.OnCheckedChangeListener#onCheckedChanged(android.widget.CompoundButton,
-         *      boolean)
          * @see WifiSettingsFragment#onControlsChanged(boolean)
          */
         @Override
@@ -115,8 +112,8 @@ public final class WifiSettingsFragment extends Fragment {
          * @param password
          *            the password
          * 
-         * @see us.rader.wyfy.db.QueryHandler.QueryListener#onPasswordResult(java.lang.String,
-         *      java.lang.String)
+         * @see us.rader.wyfy.db.QueryHandler.QueryListener#onPasswordResult(String,
+         *      String)
          */
         @Override
         public void onPasswordResult(final String ssid, final String password) {
@@ -146,7 +143,7 @@ public final class WifiSettingsFragment extends Fragment {
          * @param cursor
          *            ignored
          * 
-         * @see us.rader.wyfy.db.QueryHandler.QueryListener#onQueryPerformed(android.database.Cursor)
+         * @see us.rader.wyfy.db.QueryHandler.QueryListener#onQueryPerformed(Cursor)
          */
         @Override
         public void onQueryPerformed(Cursor cursor) {
@@ -158,7 +155,7 @@ public final class WifiSettingsFragment extends Fragment {
     }
 
     /**
-     * {@link TextWatcher} for edits to password control
+     * <code>TextWatcher</code> for edits to password control
      */
     private final class PasswordTextWatcher extends WifiSettingsTextWatcher {
 
@@ -168,7 +165,6 @@ public final class WifiSettingsFragment extends Fragment {
          * @param editable
          *            ignored due to ill-thought out Android API
          * 
-         * @see android.text.TextWatcher#afterTextChanged(android.text.Editable)
          * @see WifiSettingsFragment#onControlsChanged(boolean)
          */
         @Override
@@ -182,25 +178,22 @@ public final class WifiSettingsFragment extends Fragment {
     }
 
     /**
-     * {@Link RadioGroup.OnCheckedChangeListener} used to track selected
-     * security protocol
+     * Listener used to track selected security protocol
      */
     private class SecurityCheckedChangeListener implements
             RadioGroup.OnCheckedChangeListener {
 
         /**
          * Notify {@link #listener} of a change to the state of a
-         * {@link RadioGroup}
+         * <code>RadioGroup</code>
          * 
          * @param group
-         *            {@link RadioGroup}
+         *            <code>RadioGroup</code>
          * 
          * @param id
          *            id of the checked radio button or -1 to indicate check
          *            cleared
          * 
-         * @see android.widget.RadioGroup.OnCheckedChangeListener#onCheckedChanged(android
-         *      .widget.RadioGroup, int)
          * @see WifiSettingsFragment#onControlsChanged(boolean)
          */
         @Override
@@ -232,7 +225,7 @@ public final class WifiSettingsFragment extends Fragment {
     }
 
     /**
-     * {@link TextWatcher} for edits to SSID control
+     * <code>TextWatcher</code> for edits to SSID control
      */
     private final class SsidTextWatcher extends WifiSettingsTextWatcher {
 
@@ -242,7 +235,6 @@ public final class WifiSettingsFragment extends Fragment {
          * @param editable
          *            ignored due to ill-thought out Android API
          * 
-         * @see android.text.TextWatcher#afterTextChanged(android.text.Editable)
          * @see WifiSettingsFragment#onControlsChanged(boolean)
          */
         @Override
@@ -256,7 +248,7 @@ public final class WifiSettingsFragment extends Fragment {
     }
 
     /**
-     * {@link TextWatcher} used to track changes to text controls in this
+     * <code>TextWatcher</code> used to track changes to text controls in this
      * fragment's layout
      * 
      * This is just a convenience skeleton to provide implementations of
@@ -281,9 +273,6 @@ public final class WifiSettingsFragment extends Fragment {
          * 
          * @param after
          *            ignored
-         * 
-         * @see android.text.TextWatcher#beforeTextChanged(java.lang.CharSequence,
-         *      int, int, int)
          */
         @Override
         public void beforeTextChanged(CharSequence s, int start, int count,
@@ -307,9 +296,6 @@ public final class WifiSettingsFragment extends Fragment {
          * 
          * @param count
          *            Ignored
-         * 
-         * @see android.text.TextWatcher#onTextChanged(java.lang.CharSequence,
-         *      int, int, int)
          */
         @Override
         public void onTextChanged(CharSequence s, int start, int before,
@@ -322,25 +308,25 @@ public final class WifiSettingsFragment extends Fragment {
     }
 
     /**
-     * {@link Bundle} parameter name used to persist state of
+     * <code>Bundle</code> parameter name used to persist state of
      * {@link WifiSettings#isHidden()} across screen rotations, etc.
      */
     private static final String           HIDDEN_PARAMETER   = "HIDDEN";  //$NON-NLS-1$
 
     /**
-     * {@link Bundle} parameter name used to persist state of
+     * <code>Bundle</code> parameter name used to persist state of
      * {@link WifiSettings#getPassword()} across screen rotations, etc.
      */
     private static final String           PASSWORD_PARAMETER = "PASSWORD"; //$NON-NLS-1$
 
     /**
-     * {@link Bundle} parameter name used to persist state of
+     * <code>Bundle</code> parameter name used to persist state of
      * {@link WifiSettings#getSecurity()} across screen rotations, etc.
      */
     private static final String           SECURITY_PARAMETER = "SECURITY"; //$NON-NLS-1$
 
     /**
-     * {@link Bundle} parameter name used to persist state of
+     * <code>Bundle</code> parameter name used to persist state of
      * {@link WifiSettings#getSsid()} across screen rotations, etc.
      */
     private static final String           SSID_PARAMETER     = "SSID";    //$NON-NLS-1$
@@ -357,28 +343,29 @@ public final class WifiSettingsFragment extends Fragment {
     }
 
     /**
-     * {@link CheckBox} for a wifi access point with a SSID that isn't broadcast
+     * <code>CheckBox</code> for a wifi access point with a SSID that isn't
+     * broadcast
      */
     private CheckBox                      hiddenCheckBox;
 
     /**
-     * The {@link OnWifiSettingsChangedListener} to notify of changes to wi fi
-     * wifiSettings
+     * {@link OnWifiSettingsChangedListener} to notify of changes to
+     * {@link WifiSettings}
      */
     private OnWifiSettingsChangedListener listener;
 
     /**
-     * {@link EditText} for a wifi access point password string or WEP key
+     * <code>EditText</code> for a wifi access point password string or WEP key
      */
     private EditText                      passwordText;
 
     /**
-     * {@link RadioGroup} to select a wifi access point's security protocol
+     * <code>RadioGroup</code> to select a wifi access point's security protocol
      */
     private RadioGroup                    securityGroup;
 
     /**
-     * {@link EditText} for a wifi access point SSID string
+     * <code>EditText</code> for a wifi access point SSID string
      */
     private EditText                      ssidText;
 
@@ -387,8 +374,6 @@ public final class WifiSettingsFragment extends Fragment {
      * 
      * @param activity
      *            must implement {@link OnWifiSettingsChangedListener}
-     * 
-     * @see android.support.v4.app.Fragment#onAttach(android.app.Activity)
      */
     @Override
     public void onAttach(Activity activity) {
@@ -403,8 +388,6 @@ public final class WifiSettingsFragment extends Fragment {
      * 
      * @param savedInstanceState
      *            saved state or <code>null</code>
-     * 
-     * @see android.support.v4.app.Fragment#onCreate(android.os.Bundle)
      */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -425,19 +408,16 @@ public final class WifiSettingsFragment extends Fragment {
     }
 
     /**
-     * Inflate the {@ink View}
+     * Inflate the <code>View</code>
      * 
      * @param inflater
-     *            {@link LayoutInflater}
+     *            <code>LayoutInflater</code>
      * 
      * @param container
-     *            {@link ViewGroup}
+     *            <code>ViewGroup</code>
      * 
      * @param savedInstanceState
      *            saved state or <code>null</code>
-     * 
-     * @see android.support.v4.app.Fragment#onCreateView(android.view.LayoutInflater,
-     *      android.view.ViewGroup, android.os.Bundle)
      */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -462,8 +442,6 @@ public final class WifiSettingsFragment extends Fragment {
 
     /**
      * Remove the {@link #listener}
-     * 
-     * @see android.support.v4.app.Fragment#onDetach()
      */
     @Override
     public void onDetach() {
@@ -534,8 +512,6 @@ public final class WifiSettingsFragment extends Fragment {
      * 
      * @param outState
      *            saved state
-     * 
-     * @see android.support.v4.app.Fragment#onSaveInstanceState(android.os.Bundle)
      */
     @Override
     public void onSaveInstanceState(Bundle outState) {

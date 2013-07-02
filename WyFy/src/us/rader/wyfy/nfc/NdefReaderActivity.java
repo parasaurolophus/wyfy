@@ -51,7 +51,7 @@ public abstract class NdefReaderActivity extends
 
     /**
      * {@link Intent} extras key used to return the value passed to
-     * {@link #onTagProcessed(NdefMessage)} to the {@link Activity} that
+     * {@link #onTagProcessed(NdefMessage)} to the <code>Activity</code> that
      * launched this one
      */
     public static final String EXTRA_RESULT = "us.rader.wyfy.nfc.result"; //$NON-NLS-1$

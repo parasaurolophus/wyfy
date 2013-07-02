@@ -16,7 +16,7 @@
 
 /**
  * Simple {@link android.content.ContentProvider} for the
- * <a href="https://play.google.com/store/apps/details?id=us.rader.wyfy">WyFy</>
+ * <a href="https://play.google.com/store/apps/details?id=us.rader.wyfy" target="_top">WyFy</a>
  * Android app that allows sharing files with other apps
  * 
  * @see us.rader.wyfy.provider.FileProvider

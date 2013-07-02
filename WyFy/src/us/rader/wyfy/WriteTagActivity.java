@@ -31,7 +31,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 /**
- * {@link Activity} that writes a WIFI: URI to a NDEF compatible NFC tag
+ * <code>Activity</code> that writes a WIFI: URI to a NDEF compatible NFC tag
  * 
  * @author Kirk
  */

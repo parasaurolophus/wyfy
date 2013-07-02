@@ -16,7 +16,7 @@
 
 /**
  * The data types comprising the model for the
- * <a href="https://play.google.com/store/apps/details?id=us.rader.wyfy">WyFy</>
+ * <a href="https://play.google.com/store/apps/details?id=us.rader.wyfy" target="_top">WyFy</a>
  * Android app
  * 
  * @see us.rader.wyfy.model.WifiSettings
