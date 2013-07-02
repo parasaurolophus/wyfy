@@ -19,7 +19,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.Locale;
 
 import us.rader.wyfy.R;
-import android.app.Activity;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.nfc.NdefMessage;

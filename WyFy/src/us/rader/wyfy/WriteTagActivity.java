@@ -17,7 +17,6 @@ package us.rader.wyfy;
 
 import us.rader.wyfy.nfc.NdefWriterActivity;
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.nfc.NdefMessage;
